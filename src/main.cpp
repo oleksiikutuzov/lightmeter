@@ -18,12 +18,12 @@ Adafruit_SH1106 display(OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
 BH1750 lightMeter;
 
 #define DomeMultiplier 2.17     // Multiplier when using a white translucid Dome covering the lightmeter
-#define MeteringButtonPin 2     // Metering button pin
+#define MeteringButtonPin 7     // Metering button pin
 #define PlusButtonPin 3         // Plus button pin
 #define MinusButtonPin 4        // Minus button pin
 #define ModeButtonPin 5         // Mode button pin
 #define MenuButtonPin 6         // ISO button pin
-#define MeteringModeButtonPin 7 // Metering Mode (Ambient / Flash)
+#define MeteringModeButtonPin 2 // Metering Mode (Ambient / Flash)
 // #define PowerButtonPin          2
 
 #define MaxISOIndex 57
