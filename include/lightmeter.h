@@ -12,6 +12,7 @@ void SaveSettings()
     EEPROM.write(apertureIndexAddr, apertureIndex);
     EEPROM.write(T_expIndexAddr, T_expIndex);
     EEPROM.write(meteringModeAddr, meteringMode);
+    EEPROM.write(autoModeIndexAddr, autoModeIndex);
 }
 
 // Returns actual value of Vcc (x 100)
@@ -496,6 +497,7 @@ void refresh()
     ISOMenu = false;
     mainScreen = true;
     NDMenu = false;
+    modeMenu = false;
 
     float EV = lux2ev(lux);
 
@@ -743,6 +745,7 @@ void showISOMenu()
     ISOMenu = true;
     NDMenu = false;
     mainScreen = false;
+    modeMenu = false;
 
     display.clearDisplay();
     display.setTextSize(2);
@@ -788,6 +791,7 @@ void showNDMenu()
     ISOMenu = false;
     mainScreen = false;
     NDMenu = true;
+    modeMenu = false;
 
     display.clearDisplay();
     display.setTextSize(2);
@@ -828,6 +832,41 @@ void showNDMenu()
     delay(200);
 }
 
+void showAutoModeMenu()
+{
+    ISOMenu = false;
+    mainScreen = false;
+    NDMenu = false;
+    modeMenu = true;
+
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setCursor(14, 4);
+    display.println(F("Auto Mode"));
+    display.setTextSize(3);
+
+    if (autoModeIndex)
+    {
+        display.setCursor(48, 40);
+    }
+    else
+    {
+        display.setCursor(40, 40);
+    }
+
+    if (autoModeIndex)
+    {
+        display.print(F("ON"));
+    }
+    else
+    {
+        display.print(F("OFF"));
+    }
+
+    display.display();
+    delay(200);
+}
+
 // Navigation menu
 void menu()
 {
@@ -843,9 +882,15 @@ void menu()
             autoMode = 0;
             showNDMenu();
         }
+        else if (NDMenu)
+        {
+            autoMode = 0;
+            showAutoModeMenu();
+        }
         else
         {
             autoMode = autoModeIndex;
+            SaveSettings();
             refresh();
             delay(200);
         }
@@ -877,6 +922,23 @@ void menu()
         if (PlusButtonState == 0 || MinusButtonState == 0)
         {
             showNDMenu();
+        }
+    }
+
+    if (modeMenu)
+    {
+        if (PlusButtonState == 0)
+        {
+            autoModeIndex = 1 - autoModeIndex;
+        }
+        else if (MinusButtonState == 0)
+        {
+            autoModeIndex = 1 - autoModeIndex;
+        }
+
+        if (PlusButtonState == 0 || MinusButtonState == 0)
+        {
+            showAutoModeMenu();
         }
     }
 

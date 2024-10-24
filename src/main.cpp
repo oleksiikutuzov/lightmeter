@@ -31,6 +31,7 @@ BH1750 lightMeter;
 #define MaxTimeIndex 80
 #define MaxNDIndex 13
 #define MaxFlashMeteringTime 5000 // ms
+#define MaxAutoModeIndex 1
 
 float lux;
 boolean Overflow = 0; // Sensor got Saturated and Display "Overflow"
@@ -48,6 +49,7 @@ boolean MeteringModeButtonState; // Metering mode button state (Ambient / Flash)
 boolean ISOMenu = false;
 boolean NDMenu = false;
 boolean mainScreen = false;
+boolean modeMenu = false;
 
 // EEPROM for memory recording
 #define ISOIndexAddr 1
@@ -56,6 +58,7 @@ boolean mainScreen = false;
 #define T_expIndexAddr 4
 #define meteringModeAddr 5
 #define ndIndexAddr 6
+#define autoModeIndexAddr 7
 
 #define defaultApertureIndex 12
 #define defaultISOIndex 11
@@ -68,14 +71,14 @@ uint8_t T_expIndex = EEPROM.read(T_expIndexAddr);
 uint8_t modeIndex = EEPROM.read(modeIndexAddr);
 uint8_t meteringMode = EEPROM.read(meteringModeAddr);
 uint8_t ndIndex = EEPROM.read(ndIndexAddr);
-uint8_t autoModeIndex = 1;
+uint8_t autoModeIndex = EEPROM.read(autoModeIndexAddr);
 
 int battVolts;
 #define batteryInterval 10000
 #define autoModeInterval 200 // ms
 double lastBatteryTime = 0;
 double lastAutoModeTime = 0;
-bool autoMode = 1;
+double autoMode;
 
 #include "lightmeter.h"
 
@@ -133,6 +136,13 @@ void setup()
     {
         ndIndex = 0;
     }
+
+    if (autoModeIndex > MaxAutoModeIndex)
+    {
+        autoModeIndex = 0;
+    }
+
+    autoMode = autoModeIndex;
 
     lux = getLux();
     refresh();
