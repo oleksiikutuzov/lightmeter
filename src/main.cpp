@@ -68,10 +68,14 @@ uint8_t T_expIndex = EEPROM.read(T_expIndexAddr);
 uint8_t modeIndex = EEPROM.read(modeIndexAddr);
 uint8_t meteringMode = EEPROM.read(meteringModeAddr);
 uint8_t ndIndex = EEPROM.read(ndIndexAddr);
+uint8_t autoModeIndex = 1;
 
 int battVolts;
 #define batteryInterval 10000
+#define autoModeInterval 200 // ms
 double lastBatteryTime = 0;
+double lastAutoModeTime = 0;
+bool autoMode = 1;
 
 #include "lightmeter.h"
 
@@ -146,7 +150,24 @@ void loop()
 
     menu();
 
-    if (MeteringButtonState == 0)
+    if (autoMode && millis() >= lastAutoModeTime + autoModeInterval)
+    {
+        lastAutoModeTime = millis();
+
+        // Ambient light meter mode.
+        lightMeter.configure(BH1750::ONE_TIME_HIGH_RES_MODE_2);
+
+        lux = getLux();
+
+        if (Overflow == 1)
+        {
+            delay(10);
+            getLux();
+        }
+
+        refresh();
+    }
+    else if (MeteringButtonState == 0)
     {
         // Save setting if Metering button pressed.
         SaveSettings();
