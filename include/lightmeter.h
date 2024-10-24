@@ -835,14 +835,17 @@ void menu()
     {
         if (mainScreen)
         {
+            autoMode = 0;
             showISOMenu();
         }
         else if (ISOMenu)
         {
+            autoMode = 0;
             showNDMenu();
         }
         else
         {
+            autoMode = autoModeIndex;
             refresh();
             delay(200);
         }
