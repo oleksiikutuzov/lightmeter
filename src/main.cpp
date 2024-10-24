@@ -86,15 +86,13 @@ void setup()
 
     Serial.begin(115200);
 
-    Serial.println("Hello World!");
-
     battVolts = getBandgap(); // Determins what actual Vcc is, (X 100), based on known bandgap voltage
+    Serial.print("Battery Voltage: ");
+    Serial.println((double)battVolts / 100);
 
     Wire.begin();
     lightMeter.begin(BH1750::ONE_TIME_HIGH_RES_MODE_2);
     // lightMeter.begin(BH1750::ONE_TIME_LOW_RES_MODE); // for low resolution but 16ms light measurement time.
-
-    Serial.println(getLux());
 
     display.begin(SH1106_SWITCHCAPVCC, 0x3C);
     display.setTextColor(WHITE);
