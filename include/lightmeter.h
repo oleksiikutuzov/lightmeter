@@ -635,21 +635,26 @@ void refresh()
     display.drawRect(122, 1, 6, 8, WHITE);
     display.drawLine(124, 0, 125, 0, WHITE);
 
-    // battery indicator for 2 elements of 1.5v each.
-    if (battVolts > 270)
+    // battery indicator for 1 LiPo cell with nonlinear discharge (3.0V to 4.2V)
+    if (battVolts > 400) // Above 4.0V (almost full)
     {
         // full
         display.fillRect(123, 1, 4, 7, WHITE);
     }
-    else if (battVolts > 240)
+    else if (battVolts > 370) // 3.7V to 4.0V (moderate)
     {
         // medium
-        display.fillRect(123, 4, 4, 5, WHITE);
+        display.fillRect(123, 3, 4, 5, WHITE);
     }
-    else if (battVolts > 210)
+    else if (battVolts > 340) // 3.4V to 3.7V (low)
+    {
+        // low
+        display.fillRect(123, 5, 4, 3, WHITE);
+    }
+    else if (battVolts > 300) // 3.0V to 3.4V (critical)
     {
         // minimum
-        display.fillRect(123, 6, 4, 3, WHITE);
+        display.fillRect(123, 6, 4, 2, WHITE);
     }
     else
     {
@@ -736,6 +741,12 @@ void refresh()
     display.setTextSize(1);
     display.setCursor(0, linePos[modeIndex] + 5);
     display.print(F("*"));
+
+    // display.setTextSize(1);
+    // display.setCursor(97, 54);
+    // display.print((double)battVolts / 100);
+    // display.setCursor(122, 54);
+    // display.print(F("V"));
 
     display.display();
 }
