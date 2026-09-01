@@ -113,95 +113,25 @@ float lux2ev(float lux)
     return log2(lux / 2.5);
 }
 
-// return aperture value (1.4, 1.8, 2.0) by index in sequence (0, 1, 2, 3, ...).
+const float apertureValues[] PROGMEM = {
+    1.0f, 1.1f, 1.2f, 1.4f, 1.6f, 1.8f, 2.0f, 2.2f, 2.5f, 2.8f,
+    3.2f, 3.5f, 4.0f, 4.5f, 5.0f, 5.6f, 6.3f, 7.1f, 8.0f, 9.0f,
+    10.0f, 11.0f, 13.0f, 14.0f, 16.0f, 18.0f, 20.0f, 22.0f, 25.0f, 36.0f,
+    36.0f, 36.0f, 40.0f, 45.0f, 51.0f, 57.0f, 64.0f, 72.0f, 80.0f, 90.0f,
+    102.0f, 114.0f, 128.0f, 144.0f, 161.0f, 181.0f, 203.0f, 228.0f, 256.0f, 287.0f,
+    323.0f, 362.0f, 406.0f, 456.0f, 512.0f, 575.0f, 645.0f, 724.0f, 813.0f, 912.0f,
+    1024.0f, 1149.0f, 1290.0f, 1448.0f, 1625.0f, 1825.0f, 2048.0f, 2299.0f, 2580.0f, 2896.0f,
+    3251.0f};
+
+// Return aperture value (1.4, 1.8, 2.0) by index in sequence (0, 1, 2, 3, ...).
 float getApertureByIndex(uint8_t indx)
 {
-    float roundIndx = 10.0;
-
-    if (indx > 39)
+    if (indx > MaxApertureIndex)
     {
-        roundIndx = 1;
+        indx = 0;
     }
 
-    float f = round(pow(2, indx / 3.0 * 0.5) * roundIndx) / roundIndx;
-
-    // the formula returns exact value, but photographers uses more memorable values.
-    // convert it.
-
-    if (f >= 1.1 && f < 1.2)
-    {
-        f = 1.1;
-    }
-    else if (f >= 1.2 && f < 1.4)
-    {
-        f = 1.2;
-    }
-    else if (f > 3.2 && f < 4)
-    {
-        f = 3.5;
-    }
-    else if (f > 5 && f < 6.3)
-    {
-        f = 5.6;
-    }
-    else if (f > 10 && f < 11)
-    {
-        f = 10;
-    }
-    else if (f >= 11 && f < 12)
-    {
-        f = 11;
-    }
-    else if (f >= 12 && f < 14)
-    {
-        f = 13;
-    }
-    else if (f >= 14 && f < 16)
-    {
-        f = 14;
-    }
-    else if (f >= 20 && f < 22)
-    {
-        f = 20;
-    }
-    else if (f >= 22 && f < 25)
-    {
-        f = 22;
-    }
-    else if (f >= 24 && f < 28)
-    {
-        f = 25;
-    }
-    else if (f >= 28 && f < 40)
-    {
-        f = 36;
-    }
-    else if (f >= 40 && f < 45)
-    {
-        f = 40;
-    }
-    else if (f >= 45 && f < 50)
-    {
-        f = 45;
-    }
-    else if (f >= 50 && f < 57)
-    {
-        f = 51;
-    }
-    else if (f >= 71 && f < 80)
-    {
-        f = 72;
-    }
-    else if (f >= 80 && f < 90)
-    {
-        f = 80;
-    }
-    else if (f >= 90 && f < 101)
-    {
-        f = 90;
-    }
-
-    return f;
+    return pgm_read_float(&apertureValues[indx]);
 }
 
 // Return ISO value (100, 200, 400, ...) by index in sequence (0, 1, 2, 3, ...).

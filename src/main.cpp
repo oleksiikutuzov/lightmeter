@@ -6,6 +6,7 @@
 #include <Adafruit_SH1106.h>
 #include <BH1750.h>
 #include <EEPROM.h>
+#include <avr/pgmspace.h>
 #include <avr/sleep.h>
 
 #define OLED_DC 11
