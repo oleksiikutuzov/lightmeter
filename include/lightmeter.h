@@ -17,6 +17,34 @@ void SaveSettings()
     EEPROM.update(autoModeIndexAddr, autoModeIndex);
 }
 
+boolean beginLightMeter(BH1750::Mode mode)
+{
+    if (lightMeter.begin(mode))
+    {
+        return true;
+    }
+
+    DEBUG_PRINT(F("sensor begin failed mode="));
+    DEBUG_PRINTLN((uint8_t)mode);
+    SensorError = 1;
+    SensorOverflow = 0;
+    return false;
+}
+
+boolean configureLightMeter(BH1750::Mode mode)
+{
+    if (lightMeter.configure(mode))
+    {
+        return true;
+    }
+
+    DEBUG_PRINT(F("sensor configure failed mode="));
+    DEBUG_PRINTLN((uint8_t)mode);
+    SensorError = 1;
+    SensorOverflow = 0;
+    return false;
+}
+
 // Returns actual value of Vcc (x 100)
 int getBandgap(void)
 {
@@ -660,7 +688,7 @@ void menu()
             {
                 filteredAutoLux = lux;
                 autoLuxFilterInitialized = true;
-                lightMeter.configure(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
+                configureLightMeter(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
                 lastAutoModeTime = millis();
             }
             SaveSettings();
@@ -774,7 +802,7 @@ void menu()
             if (autoMode)
             {
                 autoLuxFilterInitialized = false;
-                lightMeter.configure(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
+                configureLightMeter(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
                 lastAutoModeTime = millis();
             }
         }

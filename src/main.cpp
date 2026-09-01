@@ -130,7 +130,7 @@ void setup()
     DEBUG_PRINTLN((double)battVolts / 100);
 
     Wire.begin();
-    lightMeter.begin(BH1750::ONE_TIME_HIGH_RES_MODE_2);
+    boolean lightMeterReady = beginLightMeter(BH1750::ONE_TIME_HIGH_RES_MODE_2);
     // lightMeter.begin(BH1750::ONE_TIME_LOW_RES_MODE); // for low resolution but 16ms light measurement time.
 
     display.begin(SH1106_SWITCHCAPVCC, 0x3C);
@@ -176,7 +176,7 @@ void setup()
 
     autoMode = autoModeIndex;
 
-    lux = getLux();
+    lux = lightMeterReady ? getLux() : 0;
     Overflow = SensorOverflow;
     refresh();
 
@@ -184,7 +184,7 @@ void setup()
     {
         filteredAutoLux = lux;
         autoLuxFilterInitialized = true;
-        lightMeter.configure(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
+        configureLightMeter(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
         lastAutoModeTime = millis();
     }
 
@@ -250,9 +250,9 @@ void loop()
         {
             // Ambient light meter mode.
             DEBUG_PRINTLN(F("metering ambient"));
-            lightMeter.configure(BH1750::ONE_TIME_HIGH_RES_MODE_2);
+            boolean configured = configureLightMeter(BH1750::ONE_TIME_HIGH_RES_MODE_2);
 
-            lux = getLux();
+            lux = configured ? getLux() : 0;
             Overflow = SensorOverflow;
 
             refresh();
@@ -261,7 +261,7 @@ void loop()
             {
                 filteredAutoLux = lux;
                 autoLuxFilterInitialized = true;
-                lightMeter.configure(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
+                configureLightMeter(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
                 lastAutoModeTime = millis();
             }
         }
@@ -269,10 +269,18 @@ void loop()
         {
             // Flash light metering
             DEBUG_PRINTLN(F("metering flash"));
-            lightMeter.configure(BH1750::CONTINUOUS_LOW_RES_MODE);
-            flashMetering = true;
-            flashStartTime = millis();
-            lastFlashSampleTime = flashStartTime - 16;
+            if (configureLightMeter(BH1750::CONTINUOUS_LOW_RES_MODE))
+            {
+                flashMetering = true;
+                flashStartTime = millis();
+                lastFlashSampleTime = flashStartTime - 16;
+            }
+            else
+            {
+                lux = 0;
+                Overflow = 0;
+                refresh();
+            }
         }
     }
     else if (autoMode && meteringMode == 0 && currentTime - lastAutoModeTime >= autoModeInterval)
