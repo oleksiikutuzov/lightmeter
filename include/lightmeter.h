@@ -65,17 +65,30 @@ int getBandgap(void)
     ADMUX = (0 << REFS1) | (1 << REFS0) | (0 << ADLAR) | (1 << MUX3) | (1 << MUX2) | (1 << MUX1) | (0 << MUX0);
 
 #endif
-    delay(50); // Let mux settle a little to get a more stable A/D conversion
-    // Start a conversion
+
+    delay(5); // Let mux/reference settle before the first throwaway conversion.
     ADCSRA |= _BV(ADSC);
-    // Wait for it to complete
     while (((ADCSRA & (1 << ADSC)) != 0))
         ;
-    // Scale the value
-    int results = (((InternalReferenceVoltage * 1024L) / ADC) + 5L) / 10L; // calculates for straight line value
+
+    uint16_t adcValue = 0;
+    for (uint8_t i = 0; i < 4; i++)
+    {
+        ADCSRA |= _BV(ADSC);
+        while (((ADCSRA & (1 << ADSC)) != 0))
+            ;
+        adcValue += ADC;
+    }
+
     ADCSRA &= ~_BV(ADEN);
 
-    return results;
+    adcValue = (adcValue + 2) / 4;
+    if (adcValue == 0)
+    {
+        return 0;
+    }
+
+    return (((InternalReferenceVoltage * 1024L) / adcValue) + 5L) / 10L;
 }
 
 /*
