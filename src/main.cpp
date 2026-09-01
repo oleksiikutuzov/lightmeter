@@ -180,6 +180,11 @@ void loop()
     {
         lastBatteryTime = currentTime;
         battVolts = getBandgap();
+
+        if (mainScreen)
+        {
+            refresh();
+        }
     }
 
     readButtons();
