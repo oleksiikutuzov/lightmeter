@@ -57,6 +57,7 @@ float getLux(float saturationLux = HighResolutionSaturationLux)
 
     if (lux < 0)
     {
+        DEBUG_PRINTLN(F("sensor error"));
         SensorError = 1;
         Overflow = 0;
         return 0;
@@ -67,6 +68,8 @@ float getLux(float saturationLux = HighResolutionSaturationLux)
     if (lux >= saturationLux)
     {
         // light sensor is overloaded.
+        DEBUG_PRINT(F("sensor overflow raw_lux="));
+        DEBUG_PRINTLN(lux);
         Overflow = 1;
         lux = saturationLux;
     }
@@ -490,6 +493,27 @@ void refresh()
     display.setTextSize(1);
     display.setCursor(0, linePos[modeIndex] + 5);
     display.print(F("*"));
+
+    DEBUG_PRINT(F("refresh mode="));
+    DEBUG_PRINT(modeIndex);
+    DEBUG_PRINT(F(" meter="));
+    DEBUG_PRINT(meteringMode);
+    DEBUG_PRINT(F(" lux="));
+    DEBUG_PRINT(lux);
+    DEBUG_PRINT(F(" ovf="));
+    DEBUG_PRINT(Overflow);
+    DEBUG_PRINT(F(" err="));
+    DEBUG_PRINT(SensorError);
+    DEBUG_PRINT(F(" EV="));
+    DEBUG_PRINT(EV);
+    DEBUG_PRINT(F(" ISO="));
+    DEBUG_PRINT(iso);
+    DEBUG_PRINT(F(" A="));
+    DEBUG_PRINT(A);
+    DEBUG_PRINT(F(" T_index="));
+    DEBUG_PRINT(T_expIndex);
+    DEBUG_PRINT(F(" T="));
+    DEBUG_PRINTLN(T);
 
     // display.setTextSize(1);
     // display.setCursor(97, 54);
