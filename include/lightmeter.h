@@ -217,7 +217,7 @@ uint8_t findNearestTimeIndex(float t)
 
         if (t <= t2)
         {
-            return (t - t1 > t2 - t) ? i + 1 : i;
+            return (t * t > t1 * t2) ? i + 1 : i;
         }
     }
 
@@ -239,7 +239,7 @@ uint8_t findNearestApertureIndex(float a)
 
         if (a <= a2)
         {
-            return (a - a1 > a2 - a) ? i + 1 : i;
+            return (a * a > a1 * a2) ? i + 1 : i;
         }
     }
 
