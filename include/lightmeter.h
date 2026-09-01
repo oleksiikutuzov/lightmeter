@@ -34,13 +34,13 @@ int getBatteryThreshold(uint8_t level)
     case 2:
         return 370;
     default:
-        return 400;
+        return BatteryFullCentivolts;
     }
 }
 
 uint8_t getBatteryLevel(int centivolts)
 {
-    if (centivolts > 400)
+    if (centivolts >= BatteryFullCentivolts)
     {
         return 4;
     }

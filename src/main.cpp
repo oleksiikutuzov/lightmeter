@@ -111,6 +111,7 @@ int battVolts;
 #define batteryInterval 10000UL
 #define BatterySmoothingDivisor 4
 #define BatteryHysteresisCentivolts 5
+#define BatteryFullCentivolts 390
 #define autoModeInterval 300UL // ms
 #define autoModeFilterWeight 0.25f
 #define autoModeLuxDeadband 0.02f
