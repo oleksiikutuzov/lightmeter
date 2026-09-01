@@ -61,7 +61,7 @@ float getLux(float saturationLux = HighResolutionSaturationLux)
     {
         DEBUG_PRINTLN(F("sensor error"));
         SensorError = 1;
-        Overflow = 0;
+        SensorOverflow = 0;
         return 0;
     }
 
@@ -72,12 +72,12 @@ float getLux(float saturationLux = HighResolutionSaturationLux)
         // light sensor is overloaded.
         DEBUG_PRINT(F("sensor overflow raw_lux="));
         DEBUG_PRINTLN(lux);
-        Overflow = 1;
+        SensorOverflow = 1;
         lux = saturationLux;
     }
     else
     {
-        Overflow = 0;
+        SensorOverflow = 0;
     }
 
     return lux * DomeMultiplier; // DomeMultiplier = 2.17 (calibration)*/
