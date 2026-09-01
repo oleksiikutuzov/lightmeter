@@ -54,7 +54,7 @@ void footer()
 /*
   Get light value
 */
-float getLux()
+float getLux(float saturationLux = HighResolutionSaturationLux)
 {
     float lux = lightMeter.readLightLevel(false);
 
@@ -67,11 +67,11 @@ float getLux()
 
     SensorError = 0;
 
-    if (lux >= 65534)
+    if (lux >= saturationLux)
     {
         // light sensor is overloaded.
         Overflow = 1;
-        lux = 65535;
+        lux = saturationLux;
     }
     else
     {

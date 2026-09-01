@@ -32,6 +32,8 @@ BH1750 lightMeter;
 #define MaxNDIndex 13
 #define MaxFlashMeteringTime 5000UL // ms
 #define MaxAutoModeIndex 1
+#define HighResolutionSaturationLux 27306.0f
+#define LowResolutionSaturationLux 54612.0f
 
 float lux;
 float filteredAutoLux;
@@ -202,7 +204,7 @@ void loop()
         else if (currentTime - lastFlashSampleTime >= 16)
         {
             lastFlashSampleTime = currentTime;
-            float currentLux = getLux();
+            float currentLux = getLux(LowResolutionSaturationLux);
 
             if (currentLux > lux)
             {
@@ -224,12 +226,6 @@ void loop()
             lightMeter.configure(BH1750::ONE_TIME_HIGH_RES_MODE_2);
 
             lux = getLux();
-
-            if (Overflow == 1)
-            {
-                delay(10);
-                lux = getLux();
-            }
 
             refresh();
 
@@ -254,12 +250,6 @@ void loop()
     {
         boolean previousSensorError = SensorError;
         float measuredLux = getLux();
-
-        if (Overflow == 1)
-        {
-            delay(10);
-            measuredLux = getLux();
-        }
 
         if (SensorError)
         {
