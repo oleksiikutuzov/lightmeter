@@ -118,10 +118,7 @@ const float apertureValues[] PROGMEM = {
     3.2f, 3.5f, 4.0f, 4.5f, 5.0f, 5.6f, 6.3f, 7.1f, 8.0f, 9.0f,
     10.0f, 11.0f, 13.0f, 14.0f, 16.0f, 18.0f, 20.0f, 22.0f, 25.0f, 36.0f,
     36.0f, 36.0f, 40.0f, 45.0f, 51.0f, 57.0f, 64.0f, 72.0f, 80.0f, 90.0f,
-    102.0f, 114.0f, 128.0f, 144.0f, 161.0f, 181.0f, 203.0f, 228.0f, 256.0f, 287.0f,
-    323.0f, 362.0f, 406.0f, 456.0f, 512.0f, 575.0f, 645.0f, 724.0f, 813.0f, 912.0f,
-    1024.0f, 1149.0f, 1290.0f, 1448.0f, 1625.0f, 1825.0f, 2048.0f, 2299.0f, 2580.0f, 2896.0f,
-    3251.0f};
+    102.0f, 114.0f, 128.0f};
 
 // Return aperture value (1.4, 1.8, 2.0) by index in sequence (0, 1, 2, 3, ...).
 float getApertureByIndex(uint8_t indx)
@@ -134,6 +131,12 @@ float getApertureByIndex(uint8_t indx)
     return pgm_read_float(&apertureValues[indx]);
 }
 
+const int32_t isoValues[] PROGMEM = {
+    8L, 10L, 12L, 16L, 20L, 25L, 32L, 40L, 50L, 64L, 80L, 100L,
+    125L, 160L, 200L, 250L, 320L, 400L, 500L, 640L, 800L, 1000L,
+    1250L, 1600L, 2000L, 2500L, 3200L, 4000L, 5000L, 6400L, 8000L,
+    10000L, 12500L, 16000L, 20000L, 25000L};
+
 // Return ISO value (100, 200, 400, ...) by index in sequence (0, 1, 2, 3, ...).
 long getISOByIndex(uint8_t indx)
 {
@@ -142,87 +145,7 @@ long getISOByIndex(uint8_t indx)
         indx = 0;
     }
 
-    indx += 10;
-
-    //  float iso = pow(10, (indx - 1) / 10.0);
-    //  iso = (long)(round(iso / 10.0) * 10);
-
-    long int factor = 1;
-    float iso = 0;
-
-    if (indx > 60)
-    {
-        indx -= 50;
-        factor = 100000;
-    }
-    else if (indx > 50)
-    {
-        indx -= 40;
-        factor = 10000;
-    }
-    else if (indx > 40)
-    {
-        indx -= 30;
-        factor = 1000;
-    }
-    else if (indx > 30)
-    {
-        indx -= 20;
-        factor = 100;
-    }
-    else if (indx > 20)
-    {
-        indx -= 10;
-        factor = 10;
-    }
-
-    if (indx == 10)
-    {
-        iso = 8;
-    }
-    else if (indx == 11)
-    {
-        iso = 10;
-    }
-    else if (indx == 12)
-    {
-        iso = 12.5;
-    }
-    else if (indx == 13)
-    {
-        iso = 16;
-    }
-    else if (indx == 14)
-    {
-        iso = 20;
-    }
-    else if (indx == 15)
-    {
-        iso = 25;
-    }
-    else if (indx == 16)
-    {
-        iso = 32;
-    }
-    else if (indx == 17)
-    {
-        iso = 40;
-    }
-    else if (indx == 18)
-    {
-        iso = 50;
-    }
-    else if (indx == 19)
-    {
-        iso = 64;
-    }
-    else if (indx == 20)
-    {
-        iso = 80;
-    }
-
-    iso = (long)floor(iso * factor);
-    return iso;
+    return pgm_read_dword(&isoValues[indx]);
 }
 
 float getMinDistance(float x, float v1, float v2)
@@ -235,6 +158,14 @@ float getMinDistance(float x, float v1, float v2)
     return v1;
 }
 
+const float timeValues[] PROGMEM = {
+    0.0001f, 0.000125f, 0.00015625f, 0.0002f, 0.00025f, 0.0003125f, 0.0004f, 0.0005f,
+    0.000625f, 0.0008f, 0.001f, 0.00125f, 0.0015625f, 0.002f, 0.0025f, 0.003125f,
+    0.004f, 0.005f, 0.00625f, 0.008f, 0.01f, 0.0125f, 0.015625f, 0.02f, 0.025f, 0.03125f,
+    0.04f, 0.05f, 0.0625f, 0.08f, 0.1f, 0.125f, 0.15625f, 0.2f, 0.25f, 0.3125f,
+    0.4f, 0.5f, 0.625f, 0.8f, 1.0f, 1.25f, 1.5625f, 2.0f, 2.5f, 3.125f, 4.0f, 5.0f,
+    6.25f, 8.0f, 10.0f, 12.5f, 15.625f, 20.0f, 25.0f, 31.25f};
+
 float getTimeByIndex(uint8_t indx)
 {
     if (indx > MaxTimeIndex)
@@ -242,92 +173,7 @@ float getTimeByIndex(uint8_t indx)
         indx = 0;
     }
 
-    float factor = 0;
-    float t = 0;
-
-    if (indx < 10)
-    {
-        factor = 100.0;
-    }
-    else if (indx < 20)
-    {
-        indx -= 10;
-        factor = 10.0;
-    }
-    else if (indx < 30)
-    {
-        indx -= 20;
-        factor = 1.0;
-    }
-    else if (indx < 40)
-    {
-        indx -= 30;
-        factor = 0.1;
-    }
-    else if (indx < 50)
-    {
-        indx -= 40;
-        factor = 0.01;
-    }
-    else if (indx < 60)
-    {
-        indx -= 50;
-        factor = 0.001;
-    }
-    else if (indx < 70)
-    {
-        indx -= 60;
-        factor = 0.0001;
-    }
-    else if (indx < 80)
-    {
-        indx -= 70;
-        factor = 0.00001;
-    }
-
-    if (indx == 0)
-    {
-        t = 100;
-    }
-    else if (indx == 1)
-    {
-        t = 80;
-    }
-    else if (indx == 2)
-    {
-        t = 64;
-    }
-    else if (indx == 3)
-    {
-        t = 50;
-    }
-    else if (indx == 4)
-    {
-        t = 40;
-    }
-    else if (indx == 5)
-    {
-        t = 32;
-    }
-    else if (indx == 6)
-    {
-        t = 25;
-    }
-    else if (indx == 7)
-    {
-        t = 20;
-    }
-    else if (indx == 8)
-    {
-        t = 16;
-    }
-    else if (indx == 9)
-    {
-        t = 12.5;
-    }
-
-    t = 1 / (t * factor);
-    return t;
+    return pgm_read_float(&timeValues[indx]);
 }
 
 // Convert calculated time (in seconds) to photograpy style shutter speed.
@@ -335,9 +181,15 @@ double fixTime(double t)
 {
     double divider = 1;
 
+    float minTime = getTimeByIndex(0);
     float maxTime = getTimeByIndex(MaxTimeIndex);
 
-    if (t < maxTime)
+    if (t < minTime)
+    {
+        return minTime;
+    }
+
+    if (t > maxTime)
     {
         return maxTime;
     }

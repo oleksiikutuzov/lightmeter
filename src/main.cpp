@@ -27,9 +27,9 @@ BH1750 lightMeter;
 #define MeteringModeButtonPin 2 // Metering Mode (Ambient / Flash)
 // #define PowerButtonPin          2
 
-#define MaxISOIndex 57
-#define MaxApertureIndex 70
-#define MaxTimeIndex 79
+#define MaxISOIndex 35
+#define MaxApertureIndex 42
+#define MaxTimeIndex 55
 #define MaxNDIndex 13
 #define MaxFlashMeteringTime 5000UL // ms
 #define MaxAutoModeIndex 1
