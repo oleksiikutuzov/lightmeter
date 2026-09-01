@@ -185,7 +185,7 @@ float getApertureByIndex(uint8_t indx)
 // Return ISO value (100, 200, 400, ...) by index in sequence (0, 1, 2, 3, ...).
 long getISOByIndex(uint8_t indx)
 {
-    if (indx < 0 || indx > MaxISOIndex)
+    if (indx > MaxISOIndex)
     {
         indx = 0;
     }

@@ -133,7 +133,7 @@ void setup()
         T_expIndex = defaultT_expIndex;
     }
 
-    if (modeIndex < 0 || modeIndex > 1)
+    if (modeIndex > 1)
     {
         // Aperture priority. Calculating shutter speed.
         modeIndex = 0;
