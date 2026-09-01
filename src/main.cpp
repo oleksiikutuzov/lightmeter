@@ -208,7 +208,7 @@ void loop()
             lightMeter.configure(BH1750::CONTINUOUS_LOW_RES_MODE);
 
             unsigned long startTime = millis();
-            uint16_t currentLux = 0;
+            float currentLux = 0;
             lux = 0;
 
             while (true)
