@@ -52,7 +52,8 @@ BH1750 lightMeter;
 float lux;
 float filteredAutoLux;
 boolean autoLuxFilterInitialized = false;
-boolean Overflow = 0; // Sensor got Saturated and Display "Overflow"
+boolean SensorOverflow = 0;
+boolean Overflow = 0; // Displayed reading was clipped by sensor saturation.
 boolean SensorError = 0;
 float ISOND;
 
@@ -176,6 +177,7 @@ void setup()
     autoMode = autoModeIndex;
 
     lux = getLux();
+    Overflow = SensorOverflow;
     refresh();
 
     if (autoMode && meteringMode == 0)
@@ -219,12 +221,19 @@ void loop()
         {
             lastFlashSampleTime = currentTime;
             float currentLux = getLux(LowResolutionSaturationLux);
+            boolean currentOverflow = SensorOverflow;
 
             if (currentLux > lux)
             {
                 lux = currentLux;
+                Overflow = currentOverflow;
                 DEBUG_PRINT(F("flash peak lux="));
                 DEBUG_PRINTLN(lux);
+            }
+
+            if (currentOverflow)
+            {
+                Overflow = 1;
             }
         }
     }
@@ -234,6 +243,7 @@ void loop()
         SaveSettings();
 
         lux = 0;
+        Overflow = 0;
         refresh();
 
         if (meteringMode == 0)
@@ -243,6 +253,7 @@ void loop()
             lightMeter.configure(BH1750::ONE_TIME_HIGH_RES_MODE_2);
 
             lux = getLux();
+            Overflow = SensorOverflow;
 
             refresh();
 
@@ -268,18 +279,26 @@ void loop()
     {
         boolean previousSensorError = SensorError;
         float measuredLux = getLux();
+        boolean measuredOverflow = SensorOverflow;
 
         if (SensorError)
         {
             if (!previousSensorError)
             {
                 lux = 0;
+                Overflow = 0;
                 refresh();
             }
         }
-        else if (previousSensorError || updateAutomaticLux(measuredLux))
+        else
         {
-            refresh();
+            boolean overflowChanged = (Overflow != measuredOverflow);
+            Overflow = measuredOverflow;
+
+            if (previousSensorError || updateAutomaticLux(measuredLux) || overflowChanged)
+            {
+                refresh();
+            }
         }
 
         lastAutoModeTime = millis();
