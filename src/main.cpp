@@ -106,6 +106,7 @@ void setup()
     pinMode(ModeButtonPin, INPUT_PULLUP);
     pinMode(MenuButtonPin, INPUT_PULLUP);
     pinMode(MeteringModeButtonPin, INPUT_PULLUP);
+    set_sleep_mode(SLEEP_MODE_IDLE);
 
     Serial.begin(115200);
 
@@ -170,6 +171,7 @@ void setup()
         lightMeter.configure(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
         lastAutoModeTime = millis();
     }
+
 }
 
 void loop()
@@ -263,5 +265,12 @@ void loop()
         }
 
         lastAutoModeTime = millis();
+    }
+
+    if (autoMode && meteringMode == 0 && !flashMetering)
+    {
+        sleep_enable();
+        sleep_cpu();
+        sleep_disable();
     }
 }

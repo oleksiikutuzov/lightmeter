@@ -18,6 +18,8 @@ void SaveSettings()
 // Returns actual value of Vcc (x 100)
 int getBandgap(void)
 {
+    ADCSRA |= _BV(ADEN);
+
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     // For mega boards
     const long InternalReferenceVoltage = 1115L; // Adjust this value to your boards specific internal BG voltage x1000
@@ -41,6 +43,7 @@ int getBandgap(void)
         ;
     // Scale the value
     int results = (((InternalReferenceVoltage * 1024L) / ADC) + 5L) / 10L; // calculates for straight line value
+    ADCSRA &= ~_BV(ADEN);
 
     return results;
 }
