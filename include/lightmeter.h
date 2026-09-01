@@ -3,6 +3,17 @@ void outOfrange()
     display.println(F("--"));
 }
 
+#if LIGHTMETER_DEBUG
+void drawDebugBuildMarker()
+{
+    display.setTextSize(1);
+    display.setCursor(110, 57);
+    display.print(F("DBG"));
+}
+#else
+#define drawDebugBuildMarker()
+#endif
+
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof((array)[0]))
 
 int getBandgap(void);
@@ -598,6 +609,7 @@ void refresh()
     display.setCursor(0, linePos[modeIndex] + 5);
     display.print(F("*"));
 
+    drawDebugBuildMarker();
     display.display();
 
     DEBUG_PRINT(F("r m="));
@@ -672,6 +684,7 @@ void showISOMenu()
 
     display.print(iso);
 
+    drawDebugBuildMarker();
     display.display();
 }
 
@@ -717,6 +730,7 @@ void showNDMenu()
         display.print(F("No filter"));
     }
 
+    drawDebugBuildMarker();
     display.display();
 }
 
@@ -751,6 +765,7 @@ void showAutoModeMenu()
         display.print(F("OFF"));
     }
 
+    drawDebugBuildMarker();
     display.display();
 }
 
