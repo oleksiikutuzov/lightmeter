@@ -8,6 +8,20 @@
 #include <avr/pgmspace.h>
 #include <avr/sleep.h>
 
+#ifndef LIGHTMETER_DEBUG
+#define LIGHTMETER_DEBUG 0
+#endif
+
+#if LIGHTMETER_DEBUG
+#define DEBUG_BEGIN(baud) Serial.begin(baud)
+#define DEBUG_PRINT(value) Serial.print(value)
+#define DEBUG_PRINTLN(value) Serial.println(value)
+#else
+#define DEBUG_BEGIN(baud)
+#define DEBUG_PRINT(value)
+#define DEBUG_PRINTLN(value)
+#endif
+
 #define OLED_DC 11
 #define OLED_CS 12
 #define OLED_CLK 8    // 10
@@ -108,11 +122,11 @@ void setup()
     pinMode(MeteringModeButtonPin, INPUT_PULLUP);
     set_sleep_mode(SLEEP_MODE_IDLE);
 
-    Serial.begin(115200);
+    DEBUG_BEGIN(115200);
 
     battVolts = getBandgap(); // Determins what actual Vcc is, (X 100), based on known bandgap voltage
-    Serial.print("Battery Voltage: ");
-    Serial.println((double)battVolts / 100);
+    DEBUG_PRINT(F("Battery Voltage: "));
+    DEBUG_PRINTLN((double)battVolts / 100);
 
     Wire.begin();
     lightMeter.begin(BH1750::ONE_TIME_HIGH_RES_MODE_2);
@@ -209,6 +223,8 @@ void loop()
             if (currentLux > lux)
             {
                 lux = currentLux;
+                DEBUG_PRINT(F("flash peak lux="));
+                DEBUG_PRINTLN(lux);
             }
         }
     }
@@ -223,6 +239,7 @@ void loop()
         if (meteringMode == 0)
         {
             // Ambient light meter mode.
+            DEBUG_PRINTLN(F("metering ambient"));
             lightMeter.configure(BH1750::ONE_TIME_HIGH_RES_MODE_2);
 
             lux = getLux();
@@ -240,6 +257,7 @@ void loop()
         else if (meteringMode == 1)
         {
             // Flash light metering
+            DEBUG_PRINTLN(F("metering flash"));
             lightMeter.configure(BH1750::CONTINUOUS_LOW_RES_MODE);
             flashMetering = true;
             flashStartTime = millis();
