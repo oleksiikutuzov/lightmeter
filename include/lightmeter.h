@@ -81,6 +81,28 @@ float getLux()
     return lux * DomeMultiplier; // DomeMultiplier = 2.17 (calibration)*/
 }
 
+boolean updateAutomaticLux(float measuredLux)
+{
+    if (!autoLuxFilterInitialized)
+    {
+        filteredAutoLux = measuredLux;
+        autoLuxFilterInitialized = true;
+        lux = measuredLux;
+        return true;
+    }
+
+    filteredAutoLux += autoModeFilterWeight * (measuredLux - filteredAutoLux);
+
+    float changeThreshold = max(1.0f, abs(lux) * autoModeLuxDeadband);
+    if (abs(filteredAutoLux - lux) < changeThreshold)
+    {
+        return false;
+    }
+
+    lux = filteredAutoLux;
+    return true;
+}
+
 float log2(float x)
 {
     return log(x) / log(2);
@@ -916,6 +938,8 @@ void menu()
             autoMode = autoModeIndex;
             if (autoMode && meteringMode == 0)
             {
+                filteredAutoLux = lux;
+                autoLuxFilterInitialized = true;
                 lightMeter.configure(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
                 lastAutoModeTime = millis();
             }
@@ -1029,6 +1053,7 @@ void menu()
             meteringMode = 0;
             if (autoMode)
             {
+                autoLuxFilterInitialized = false;
                 lightMeter.configure(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
                 lastAutoModeTime = millis();
             }
