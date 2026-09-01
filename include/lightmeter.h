@@ -810,7 +810,6 @@ void showISOMenu()
     display.print(iso);
 
     display.display();
-    delay(200);
 }
 
 void showNDMenu()
@@ -856,7 +855,6 @@ void showNDMenu()
     }
 
     display.display();
-    delay(200);
 }
 
 void showAutoModeMenu()
@@ -891,7 +889,6 @@ void showAutoModeMenu()
     }
 
     display.display();
-    delay(200);
 }
 
 // Navigation menu
@@ -919,7 +916,6 @@ void menu()
             autoMode = autoModeIndex;
             SaveSettings();
             refresh();
-            delay(200);
         }
     }
 
@@ -1014,7 +1010,6 @@ void menu()
         }
 
         refresh();
-        delay(200);
     }
 
     if (mainScreen && MeteringModeButtonState == 0)
@@ -1030,7 +1025,6 @@ void menu()
         }
 
         refresh();
-        delay(200);
     }
 
     if (mainScreen && (PlusButtonState == 0 || MinusButtonState == 0))
@@ -1088,8 +1082,6 @@ void menu()
             }
         }
 
-        delay(200);
-
         refresh();
     }
 }
@@ -1097,12 +1089,28 @@ void menu()
 /*
   Read buttons state
 */
+boolean readButtonPress(uint8_t pin, boolean &previousState)
+{
+    boolean currentState = digitalRead(pin);
+    boolean pressed = HIGH;
+    unsigned long currentTime = millis();
+
+    if (currentState == LOW && previousState == HIGH && currentTime - lastButtonTime >= 50)
+    {
+        pressed = LOW;
+        lastButtonTime = currentTime;
+    }
+
+    previousState = currentState;
+    return pressed;
+}
+
 void readButtons()
 {
-    PlusButtonState = digitalRead(PlusButtonPin);
-    MinusButtonState = digitalRead(MinusButtonPin);
-    MeteringButtonState = digitalRead(MeteringButtonPin);
-    ModeButtonState = digitalRead(ModeButtonPin);
-    MenuButtonState = digitalRead(MenuButtonPin);
-    MeteringModeButtonState = digitalRead(MeteringModeButtonPin);
+    PlusButtonState = readButtonPress(PlusButtonPin, previousPlusButtonState);
+    MinusButtonState = readButtonPress(MinusButtonPin, previousMinusButtonState);
+    MeteringButtonState = readButtonPress(MeteringButtonPin, previousMeteringButtonState);
+    ModeButtonState = readButtonPress(ModeButtonPin, previousModeButtonState);
+    MenuButtonState = readButtonPress(MenuButtonPin, previousMenuButtonState);
+    MeteringModeButtonState = readButtonPress(MeteringModeButtonPin, previousMeteringModeButtonState);
 }
