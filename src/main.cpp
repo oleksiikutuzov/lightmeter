@@ -55,7 +55,6 @@ boolean autoLuxFilterInitialized = false;
 boolean SensorOverflow = 0;
 boolean Overflow = 0; // Displayed reading was clipped by sensor saturation.
 boolean SensorError = 0;
-float ISOND;
 
 boolean PlusButtonState;         // "+" button state
 boolean MinusButtonState;        // "-" button state
