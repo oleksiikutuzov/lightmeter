@@ -276,7 +276,7 @@ float getMinDistance(float x, float v1, float v2)
 
 float getTimeByIndex(uint8_t indx)
 {
-    if (indx < 0 || indx >= MaxTimeIndex)
+    if (indx > MaxTimeIndex)
     {
         indx = 0;
     }
