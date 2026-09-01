@@ -47,10 +47,21 @@ boolean ModeButtonState;         // Mode button state
 boolean MenuButtonState;         // ISO button state
 boolean MeteringModeButtonState; // Metering mode button state (Ambient / Flash)
 
+boolean previousPlusButtonState = HIGH;
+boolean previousMinusButtonState = HIGH;
+boolean previousMeteringButtonState = HIGH;
+boolean previousModeButtonState = HIGH;
+boolean previousMenuButtonState = HIGH;
+boolean previousMeteringModeButtonState = HIGH;
+unsigned long lastButtonTime = 0;
+
 boolean ISOMenu = false;
 boolean NDMenu = false;
 boolean mainScreen = false;
 boolean modeMenu = false;
+boolean flashMetering = false;
+unsigned long flashStartTime = 0;
+unsigned long lastFlashSampleTime = 0;
 
 // EEPROM for memory recording
 #define ISOIndexAddr 1
@@ -163,24 +174,26 @@ void loop()
 
     menu();
 
-    if (autoMode && currentTime - lastAutoModeTime >= autoModeInterval)
+    if (flashMetering)
     {
-        lastAutoModeTime = currentTime;
-
-        // Ambient light meter mode.
-        lightMeter.configure(BH1750::ONE_TIME_HIGH_RES_MODE_2);
-
-        lux = getLux();
-
-        if (Overflow == 1)
+        currentTime = millis();
+        if (currentTime - flashStartTime >= MaxFlashMeteringTime)
         {
-            delay(10);
-            lux = getLux();
+            flashMetering = false;
+            refresh();
         }
+        else if (currentTime - lastFlashSampleTime >= 16)
+        {
+            lastFlashSampleTime = currentTime;
+            float currentLux = getLux();
 
-        refresh();
+            if (currentLux > lux)
+            {
+                lux = currentLux;
+            }
+        }
     }
-    else if (MeteringButtonState == 0)
+    else if (MeteringButtonState == LOW)
     {
         // Save setting if Metering button pressed.
         SaveSettings();
@@ -202,35 +215,31 @@ void loop()
             }
 
             refresh();
-            delay(200);
         }
         else if (meteringMode == 1)
         {
             // Flash light metering
             lightMeter.configure(BH1750::CONTINUOUS_LOW_RES_MODE);
-
-            unsigned long startTime = millis();
-            float currentLux = 0;
-            lux = 0;
-
-            while (true)
-            {
-                // check max flash metering time
-                if (millis() - startTime >= MaxFlashMeteringTime)
-                {
-                    break;
-                }
-
-                currentLux = getLux();
-                delay(16);
-
-                if (currentLux > lux)
-                {
-                    lux = currentLux;
-                }
-            }
-
-            refresh();
+            flashMetering = true;
+            flashStartTime = millis();
+            lastFlashSampleTime = flashStartTime - 16;
         }
+    }
+    else if (autoMode && currentTime - lastAutoModeTime >= autoModeInterval)
+    {
+        lastAutoModeTime = currentTime;
+
+        // Ambient light meter mode.
+        lightMeter.configure(BH1750::ONE_TIME_HIGH_RES_MODE_2);
+
+        lux = getLux();
+
+        if (Overflow == 1)
+        {
+            delay(10);
+            lux = getLux();
+        }
+
+        refresh();
     }
 }
