@@ -87,7 +87,7 @@ uint8_t autoModeIndex = EEPROM.read(autoModeIndexAddr);
 
 int battVolts;
 #define batteryInterval 10000UL
-#define autoModeInterval 200UL // ms
+#define autoModeInterval 300UL // ms
 unsigned long lastBatteryTime = 0;
 unsigned long lastAutoModeTime = 0;
 boolean autoMode;
@@ -158,6 +158,12 @@ void setup()
 
     lux = getLux();
     refresh();
+
+    if (autoMode && meteringMode == 0)
+    {
+        lightMeter.configure(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
+        lastAutoModeTime = millis();
+    }
 }
 
 void loop()
@@ -215,6 +221,12 @@ void loop()
             }
 
             refresh();
+
+            if (autoMode)
+            {
+                lightMeter.configure(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
+                lastAutoModeTime = millis();
+            }
         }
         else if (meteringMode == 1)
         {
@@ -225,13 +237,8 @@ void loop()
             lastFlashSampleTime = flashStartTime - 16;
         }
     }
-    else if (autoMode && currentTime - lastAutoModeTime >= autoModeInterval)
+    else if (autoMode && meteringMode == 0 && currentTime - lastAutoModeTime >= autoModeInterval)
     {
-        lastAutoModeTime = currentTime;
-
-        // Ambient light meter mode.
-        lightMeter.configure(BH1750::ONE_TIME_HIGH_RES_MODE_2);
-
         lux = getLux();
 
         if (Overflow == 1)
@@ -241,5 +248,6 @@ void loop()
         }
 
         refresh();
+        lastAutoModeTime = millis();
     }
 }

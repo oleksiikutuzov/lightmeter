@@ -914,6 +914,11 @@ void menu()
         else
         {
             autoMode = autoModeIndex;
+            if (autoMode && meteringMode == 0)
+            {
+                lightMeter.configure(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
+                lastAutoModeTime = millis();
+            }
             SaveSettings();
             refresh();
         }
@@ -1022,6 +1027,11 @@ void menu()
         else
         {
             meteringMode = 0;
+            if (autoMode)
+            {
+                lightMeter.configure(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
+                lastAutoModeTime = millis();
+            }
         }
 
         refresh();
