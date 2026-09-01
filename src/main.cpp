@@ -35,6 +35,7 @@ BH1750 lightMeter;
 
 float lux;
 boolean Overflow = 0; // Sensor got Saturated and Display "Overflow"
+boolean SensorError = 0;
 float ISOND;
 boolean ISOmode = 0;
 boolean NDmode = 0;

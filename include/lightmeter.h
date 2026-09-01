@@ -56,7 +56,16 @@ void footer()
 */
 float getLux()
 {
-    uint16_t lux = lightMeter.readLightLevel(false);
+    float lux = lightMeter.readLightLevel(false);
+
+    if (lux < 0)
+    {
+        SensorError = 1;
+        Overflow = 0;
+        return 0;
+    }
+
+    SensorError = 0;
 
     if (lux >= 65534)
     {
@@ -677,7 +686,14 @@ void refresh()
 
     display.setCursor(72, 1);
     display.print(F("lx:"));
-    display.print(lux, 0);
+    if (SensorError)
+    {
+        display.print(F("ERR"));
+    }
+    else
+    {
+        display.print(lux, 0);
+    }
 
     display.drawLine(95, linePos[0] - 1, 95, linePos[0] + 17, WHITE); // LINE DIVISOR
     display.setTextSize(1);
