@@ -156,12 +156,12 @@ float getMinDistance(float x, float v1, float v2)
 }
 
 const float timeValues[] PROGMEM = {
-    0.0001f, 0.000125f, 0.00015625f, 0.0002f, 0.00025f, 0.0003125f, 0.0004f, 0.0005f,
-    0.000625f, 0.0008f, 0.001f, 0.00125f, 0.0015625f, 0.002f, 0.0025f, 0.003125f,
-    0.004f, 0.005f, 0.00625f, 0.008f, 0.01f, 0.0125f, 0.015625f, 0.02f, 0.025f, 0.03125f,
-    0.04f, 0.05f, 0.0625f, 0.08f, 0.1f, 0.125f, 0.15625f, 0.2f, 0.25f, 0.3125f,
-    0.4f, 0.5f, 0.625f, 0.8f, 1.0f, 1.25f, 1.5625f, 2.0f, 2.5f, 3.125f, 4.0f, 5.0f,
-    6.25f, 8.0f, 10.0f, 12.5f, 15.625f, 20.0f, 25.0f, 31.25f};
+    0.0001f, 0.000125f, 0.00015625f, 0.0002f, 0.00025f, 0.000333333f, 0.0004f, 0.0005f,
+    0.000666667f, 0.0008f, 0.001f, 0.00125f, 0.0015625f, 0.002f, 0.0025f, 0.003333333f,
+    0.004f, 0.005f, 0.006666667f, 0.008f, 0.01f, 0.0125f, 0.016666667f, 0.02f, 0.025f,
+    0.033333333f, 0.04f, 0.05f, 0.066666667f, 0.076923077f, 0.1f, 0.125f, 0.166666667f,
+    0.2f, 0.25f, 0.333333333f, 0.4f, 0.5f, 0.6f, 0.8f, 1.0f, 1.3f, 1.6f, 2.0f, 2.5f,
+    3.2f, 4.0f, 5.0f, 6.0f, 8.0f, 10.0f, 13.0f, 15.0f, 20.0f, 25.0f, 30.0f};
 
 float getTimeByIndex(uint8_t indx)
 {
@@ -173,101 +173,32 @@ float getTimeByIndex(uint8_t indx)
     return pgm_read_float(&timeValues[indx]);
 }
 
-// Convert calculated time (in seconds) to photograpy style shutter speed.
-double fixTime(double t)
+uint8_t findNearestTimeIndex(float t)
 {
-    double divider = 1;
-
     float minTime = getTimeByIndex(0);
-    float maxTime = getTimeByIndex(MaxTimeIndex);
-
-    if (t < minTime)
+    if (t <= minTime)
     {
-        return minTime;
+        return 0;
     }
 
-    if (t > maxTime)
+    for (uint8_t i = 0; i < MaxTimeIndex; i++)
     {
-        return maxTime;
+        float t1 = getTimeByIndex(i);
+        float t2 = getTimeByIndex(i + 1);
+
+        if (t <= t2)
+        {
+            return (t - t1 > t2 - t) ? i + 1 : i;
+        }
     }
 
-    t = 1 / t;
+    return MaxTimeIndex;
+}
 
-    if (t > 99999)
-    {
-        divider = 10000;
-    }
-    else if (t > 9999)
-    {
-        divider = 1000;
-    }
-    else if (t > 999)
-    {
-        divider = 100;
-    }
-    else if (t > 99)
-    {
-        divider = 10;
-    }
-
-    t = t / divider;
-
-    if (t >= 10 && t <= 12.5)
-    {
-        t = getMinDistance(t, 10, 12.5);
-    }
-    else if (t >= 12.5 && t <= 16)
-    {
-        t = getMinDistance(t, 12.5, 16);
-    }
-    else if (t >= 16 && t <= 20)
-    {
-        t = getMinDistance(t, 16, 20);
-    }
-    else if (t >= 20 && t <= 25)
-    {
-        t = getMinDistance(t, 20, 25);
-    }
-    else if (t >= 25 && t <= 32)
-    {
-        t = getMinDistance(t, 25, 32);
-    }
-    else if (t >= 32 && t <= 40)
-    {
-        t = getMinDistance(t, 32, 40);
-    }
-    else if (t >= 40 && t <= 50)
-    {
-        t = getMinDistance(t, 40, 50);
-    }
-    else if (t >= 50 && t <= 64)
-    {
-        t = getMinDistance(t, 50, 64);
-    }
-    else if (t >= 64 && t <= 80)
-    {
-        t = getMinDistance(t, 64, 80);
-    }
-    else if (t >= 80 && t <= 100)
-    {
-        t = getMinDistance(t, 80, 100);
-    }
-
-    t = t * divider;
-
-    if (t == 32)
-    {
-        t = 30;
-    }
-
-    if (t == 16)
-    {
-        t = 15;
-    }
-
-    t = 1 / t;
-
-    return t;
+// Convert calculated time (in seconds) to the nearest shutter speed in the table.
+float fixTime(float t)
+{
+    return getTimeByIndex(findNearestTimeIndex(t));
 }
 
 // Convert calculated aperture value to photograpy style aperture value.
@@ -336,17 +267,8 @@ void refresh()
         if (modeIndex == 0)
         {
             // Aperture priority. Calculating time.
-            T = fixTime(250 * A * A / ISOND / lux); // T = exposure time, in seconds
-
-            // Calculating shutter speed index for correct menu navigation.
-            for (int i = 0; i <= MaxTimeIndex; i++)
-            {
-                if (T == getTimeByIndex(i))
-                {
-                    T_expIndex = i;
-                    break;
-                }
-            }
+            T_expIndex = findNearestTimeIndex(250 * A * A / ISOND / lux);
+            T = getTimeByIndex(T_expIndex); // T = exposure time, in seconds
         }
         else if (modeIndex == 1)
         {
