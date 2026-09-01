@@ -530,7 +530,7 @@ void refresh()
     NDMenu = false;
     modeMenu = false;
 
-    float EV = lux2ev(lux);
+    float EV = 0;
 
     float T = getTimeByIndex(T_expIndex);
     float A = getApertureByIndex(apertureIndex);
@@ -552,6 +552,8 @@ void refresh()
 
     if (lux > 0)
     {
+        EV = lux2ev(lux);
+
         if (modeIndex == 0)
         {
             // Aperture priority. Calculating time.
@@ -611,10 +613,14 @@ void refresh()
     {
         Tdisplay = 2; // Exposure in in seconds
     }
-    else if (T < 0.5)
+    else if (T > 0 && T < 0.5)
     {
         Tdisplay = 1; // Exposure is in fractional form
         Tfr = round(1 / T);
+    }
+    else
+    {
+        Tdisplay = 3; // Exposure is out of range
     }
 
     uint8_t linePos[] = {15, 37};
