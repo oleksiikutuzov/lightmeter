@@ -3,6 +3,8 @@ void outOfrange()
     display.println(F("--"));
 }
 
+#define ARRAY_LENGTH(array) (sizeof(array) / sizeof((array)[0]))
+
 void SaveSettings()
 {
     // Save lightmeter setting into EEPROM.
@@ -120,6 +122,8 @@ const float apertureValues[] PROGMEM = {
     32.0f, 36.0f, 40.0f, 45.0f, 51.0f, 57.0f, 64.0f, 72.0f, 80.0f, 90.0f,
     102.0f, 114.0f, 128.0f};
 
+static_assert(ARRAY_LENGTH(apertureValues) == MaxApertureIndex + 1, "apertureValues size must match MaxApertureIndex");
+
 // Return aperture value (1.4, 1.8, 2.0) by index in sequence (0, 1, 2, 3, ...).
 float getApertureByIndex(uint8_t indx)
 {
@@ -136,6 +140,8 @@ const int32_t isoValues[] PROGMEM = {
     125L, 160L, 200L, 250L, 320L, 400L, 500L, 640L, 800L, 1000L,
     1250L, 1600L, 2000L, 2500L, 3200L, 4000L, 5000L, 6400L, 8000L,
     10000L, 12500L, 16000L, 20000L, 25000L};
+
+static_assert(ARRAY_LENGTH(isoValues) == MaxISOIndex + 1, "isoValues size must match MaxISOIndex");
 
 // Return ISO value (100, 200, 400, ...) by index in sequence (0, 1, 2, 3, ...).
 long getISOByIndex(uint8_t indx)
@@ -165,6 +171,8 @@ const float timeValues[] PROGMEM = {
     0.033333333f, 0.04f, 0.05f, 0.066666667f, 0.076923077f, 0.1f, 0.125f, 0.166666667f,
     0.2f, 0.25f, 0.333333333f, 0.4f, 0.5f, 0.6f, 0.8f, 1.0f, 1.3f, 1.6f, 2.0f, 2.5f,
     3.2f, 4.0f, 5.0f, 6.0f, 8.0f, 10.0f, 13.0f, 15.0f, 20.0f, 25.0f, 30.0f};
+
+static_assert(ARRAY_LENGTH(timeValues) == MaxTimeIndex + 1, "timeValues size must match MaxTimeIndex");
 
 float getTimeByIndex(uint8_t indx)
 {
