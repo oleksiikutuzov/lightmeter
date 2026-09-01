@@ -12,14 +12,20 @@
 #define LIGHTMETER_DEBUG 0
 #endif
 
+#ifndef LIGHTMETER_DEBUG_BAUD
+#define LIGHTMETER_DEBUG_BAUD 115200
+#endif
+
 #if LIGHTMETER_DEBUG
 #define DEBUG_BEGIN(baud) Serial.begin(baud)
 #define DEBUG_PRINT(value) Serial.print(value)
 #define DEBUG_PRINTLN(value) Serial.println(value)
+#define DEBUG_FLUSH() Serial.flush()
 #else
 #define DEBUG_BEGIN(baud)
 #define DEBUG_PRINT(value)
 #define DEBUG_PRINTLN(value)
+#define DEBUG_FLUSH()
 #endif
 
 #define OLED_DC 11
@@ -122,11 +128,13 @@ void setup()
     pinMode(MeteringModeButtonPin, INPUT_PULLUP);
     set_sleep_mode(SLEEP_MODE_IDLE);
 
-    DEBUG_BEGIN(115200);
+    DEBUG_BEGIN(LIGHTMETER_DEBUG_BAUD);
+    delay(250);
 
     battVolts = getBandgap(); // Determins what actual Vcc is, (X 100), based on known bandgap voltage
-    DEBUG_PRINT(F("Battery Voltage: "));
+    DEBUG_PRINT(F("bat="));
     DEBUG_PRINTLN((double)battVolts / 100);
+    DEBUG_FLUSH();
 
     Wire.begin();
     boolean lightMeterReady = beginLightMeter(BH1750::ONE_TIME_HIGH_RES_MODE_2);
