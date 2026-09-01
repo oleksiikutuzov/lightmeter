@@ -119,6 +119,10 @@ uint8_t batteryLevel = 0;
 unsigned long lastBatteryTime = 0;
 unsigned long lastAutoModeTime = 0;
 boolean autoMode;
+#if LIGHTMETER_DEBUG
+int rawBattVolts;
+boolean debugMenu = false;
+#endif
 
 #include "lightmeter.h"
 
@@ -211,6 +215,12 @@ void loop()
         {
             refresh();
         }
+#if LIGHTMETER_DEBUG
+        else if (debugMenu)
+        {
+            showDebugInfoMenu();
+        }
+#endif
     }
 
     readButtons();
