@@ -84,6 +84,21 @@ int updateBatteryVoltage(boolean initialize)
     return measuredBattVolts;
 }
 
+void debugPrintBattery(int measuredBattVolts)
+{
+#if LIGHTMETER_DEBUG
+    DEBUG_PRINT(F("bat raw="));
+    DEBUG_PRINT((double)measuredBattVolts / 100);
+    DEBUG_PRINT(F(" sm="));
+    DEBUG_PRINT((double)battVolts / 100);
+    DEBUG_PRINT(F(" lvl="));
+    DEBUG_PRINTLN(batteryLevel);
+    DEBUG_FLUSH();
+#else
+    (void)measuredBattVolts;
+#endif
+}
+
 void drawBatteryIndicator()
 {
     display.drawRect(122, 1, 6, 8, WHITE);
