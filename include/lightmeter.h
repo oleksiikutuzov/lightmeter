@@ -419,6 +419,10 @@ void refresh()
     {
         display.print(F("ERR"));
     }
+    else if (Overflow)
+    {
+        display.print(F("OVF"));
+    }
     else
     {
         display.print(lux, 0);
