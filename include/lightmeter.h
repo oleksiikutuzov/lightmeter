@@ -273,6 +273,7 @@ void refresh()
     float T = getTimeByIndex(T_expIndex);
     float A = getApertureByIndex(apertureIndex);
     long iso = getISOByIndex(ISOIndex);
+    float ISOND = iso;
 
     uint8_t ndStop = getND(ndIndex);
 
@@ -282,10 +283,6 @@ void refresh()
     if (ndIndex > 0)
     {
         ISOND = iso / float(1UL << ndIndex);
-    }
-    else
-    {
-        ISOND = iso;
     }
 
     if (lux > 0)
