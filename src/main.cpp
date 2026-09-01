@@ -134,10 +134,7 @@ void setup()
     DEBUG_BEGIN(LIGHTMETER_DEBUG_BAUD);
     delay(250);
 
-    updateBatteryVoltage(true);
-    DEBUG_PRINT(F("bat="));
-    DEBUG_PRINTLN((double)battVolts / 100);
-    DEBUG_FLUSH();
+    debugPrintBattery(updateBatteryVoltage(true));
 
     Wire.begin();
     boolean lightMeterReady = beginLightMeter(BH1750::ONE_TIME_HIGH_RES_MODE_2);
@@ -207,7 +204,7 @@ void loop()
     if (currentTime - lastBatteryTime >= batteryInterval)
     {
         lastBatteryTime = currentTime;
-        updateBatteryVoltage(false);
+        debugPrintBattery(updateBatteryVoltage(false));
 
         if (mainScreen)
         {
