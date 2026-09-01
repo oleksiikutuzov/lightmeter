@@ -34,6 +34,8 @@ BH1750 lightMeter;
 #define MaxAutoModeIndex 1
 
 float lux;
+float filteredAutoLux;
+boolean autoLuxFilterInitialized = false;
 boolean Overflow = 0; // Sensor got Saturated and Display "Overflow"
 boolean SensorError = 0;
 float ISOND;
@@ -88,6 +90,8 @@ uint8_t autoModeIndex = EEPROM.read(autoModeIndexAddr);
 int battVolts;
 #define batteryInterval 10000UL
 #define autoModeInterval 300UL // ms
+#define autoModeFilterWeight 0.25f
+#define autoModeLuxDeadband 0.02f
 unsigned long lastBatteryTime = 0;
 unsigned long lastAutoModeTime = 0;
 boolean autoMode;
@@ -161,6 +165,8 @@ void setup()
 
     if (autoMode && meteringMode == 0)
     {
+        filteredAutoLux = lux;
+        autoLuxFilterInitialized = true;
         lightMeter.configure(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
         lastAutoModeTime = millis();
     }
@@ -224,6 +230,8 @@ void loop()
 
             if (autoMode)
             {
+                filteredAutoLux = lux;
+                autoLuxFilterInitialized = true;
                 lightMeter.configure(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
                 lastAutoModeTime = millis();
             }
@@ -239,15 +247,28 @@ void loop()
     }
     else if (autoMode && meteringMode == 0 && currentTime - lastAutoModeTime >= autoModeInterval)
     {
-        lux = getLux();
+        boolean previousSensorError = SensorError;
+        float measuredLux = getLux();
 
         if (Overflow == 1)
         {
             delay(10);
-            lux = getLux();
+            measuredLux = getLux();
         }
 
-        refresh();
+        if (SensorError)
+        {
+            if (!previousSensorError)
+            {
+                lux = 0;
+                refresh();
+            }
+        }
+        else if (previousSensorError || updateAutomaticLux(measuredLux))
+        {
+            refresh();
+        }
+
         lastAutoModeTime = millis();
     }
 }
