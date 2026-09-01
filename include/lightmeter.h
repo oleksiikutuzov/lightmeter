@@ -6,13 +6,13 @@ void outOfrange()
 void SaveSettings()
 {
     // Save lightmeter setting into EEPROM.
-    EEPROM.write(ndIndexAddr, ndIndex);
-    EEPROM.write(ISOIndexAddr, ISOIndex);
-    EEPROM.write(modeIndexAddr, modeIndex);
-    EEPROM.write(apertureIndexAddr, apertureIndex);
-    EEPROM.write(T_expIndexAddr, T_expIndex);
-    EEPROM.write(meteringModeAddr, meteringMode);
-    EEPROM.write(autoModeIndexAddr, autoModeIndex);
+    EEPROM.update(ndIndexAddr, ndIndex);
+    EEPROM.update(ISOIndexAddr, ISOIndex);
+    EEPROM.update(modeIndexAddr, modeIndex);
+    EEPROM.update(apertureIndexAddr, apertureIndex);
+    EEPROM.update(T_expIndexAddr, T_expIndex);
+    EEPROM.update(meteringModeAddr, meteringMode);
+    EEPROM.update(autoModeIndexAddr, autoModeIndex);
 }
 
 // Returns actual value of Vcc (x 100)
