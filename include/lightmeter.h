@@ -5,6 +5,98 @@ void outOfrange()
 
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof((array)[0]))
 
+int getBandgap(void);
+
+const uint8_t batteryFillTop[] PROGMEM = {0, 6, 5, 3, 1};
+const uint8_t batteryFillHeight[] PROGMEM = {0, 2, 3, 5, 7};
+
+static_assert(ARRAY_LENGTH(batteryFillTop) == ARRAY_LENGTH(batteryFillHeight), "battery fill tables must match");
+
+int getBatteryThreshold(uint8_t level)
+{
+    switch (level)
+    {
+    case 0:
+        return 300;
+    case 1:
+        return 340;
+    case 2:
+        return 370;
+    default:
+        return 400;
+    }
+}
+
+uint8_t getBatteryLevel(int centivolts)
+{
+    if (centivolts > 400)
+    {
+        return 4;
+    }
+    if (centivolts > 370)
+    {
+        return 3;
+    }
+    if (centivolts > 340)
+    {
+        return 2;
+    }
+    if (centivolts > 300)
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+void updateBatteryLevel()
+{
+    while (batteryLevel < 4 && battVolts > getBatteryThreshold(batteryLevel) + BatteryHysteresisCentivolts)
+    {
+        batteryLevel++;
+    }
+
+    while (batteryLevel > 0 && battVolts <= getBatteryThreshold(batteryLevel - 1) - BatteryHysteresisCentivolts)
+    {
+        batteryLevel--;
+    }
+}
+
+int updateBatteryVoltage(boolean initialize)
+{
+    int measuredBattVolts = getBandgap();
+    if (measuredBattVolts <= 0)
+    {
+        return measuredBattVolts;
+    }
+
+    if (initialize)
+    {
+        battVolts = measuredBattVolts;
+        batteryLevel = getBatteryLevel(battVolts);
+    }
+    else
+    {
+        battVolts = (battVolts * (BatterySmoothingDivisor - 1) + measuredBattVolts + BatterySmoothingDivisor / 2) / BatterySmoothingDivisor;
+        updateBatteryLevel();
+    }
+
+    return measuredBattVolts;
+}
+
+void drawBatteryIndicator()
+{
+    display.drawRect(122, 1, 6, 8, WHITE);
+    display.drawLine(124, 0, 125, 0, WHITE);
+
+    uint8_t level = min(batteryLevel, (uint8_t)(ARRAY_LENGTH(batteryFillTop) - 1));
+    uint8_t height = pgm_read_byte(&batteryFillHeight[level]);
+    if (height > 0)
+    {
+        display.fillRect(123, pgm_read_byte(&batteryFillTop[level]), 4, height, WHITE);
+    }
+}
+
 void SaveSettings()
 {
     // Save lightmeter setting into EEPROM.
@@ -397,35 +489,7 @@ void refresh()
 
     display.setTextSize(1);
 
-    // battery indicator
-    display.drawRect(122, 1, 6, 8, WHITE);
-    display.drawLine(124, 0, 125, 0, WHITE);
-
-    // battery indicator for 1 LiPo cell with nonlinear discharge (3.0V to 4.2V)
-    if (battVolts > 400) // Above 4.0V (almost full)
-    {
-        // full
-        display.fillRect(123, 1, 4, 7, WHITE);
-    }
-    else if (battVolts > 370) // 3.7V to 4.0V (moderate)
-    {
-        // medium
-        display.fillRect(123, 3, 4, 5, WHITE);
-    }
-    else if (battVolts > 340) // 3.4V to 3.7V (low)
-    {
-        // low
-        display.fillRect(123, 5, 4, 3, WHITE);
-    }
-    else if (battVolts > 300) // 3.0V to 3.4V (critical)
-    {
-        // minimum
-        display.fillRect(123, 6, 4, 2, WHITE);
-    }
-    else
-    {
-        // empty
-    }
+    drawBatteryIndicator();
 
     // Metering mode icon
     display.setCursor(0, 1);

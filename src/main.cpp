@@ -109,9 +109,12 @@ uint8_t autoModeIndex = EEPROM.read(autoModeIndexAddr);
 
 int battVolts;
 #define batteryInterval 10000UL
+#define BatterySmoothingDivisor 4
+#define BatteryHysteresisCentivolts 5
 #define autoModeInterval 300UL // ms
 #define autoModeFilterWeight 0.25f
 #define autoModeLuxDeadband 0.02f
+uint8_t batteryLevel = 0;
 unsigned long lastBatteryTime = 0;
 unsigned long lastAutoModeTime = 0;
 boolean autoMode;
@@ -131,7 +134,7 @@ void setup()
     DEBUG_BEGIN(LIGHTMETER_DEBUG_BAUD);
     delay(250);
 
-    battVolts = getBandgap(); // Determins what actual Vcc is, (X 100), based on known bandgap voltage
+    updateBatteryVoltage(true);
     DEBUG_PRINT(F("bat="));
     DEBUG_PRINTLN((double)battVolts / 100);
     DEBUG_FLUSH();
@@ -204,7 +207,7 @@ void loop()
     if (currentTime - lastBatteryTime >= batteryInterval)
     {
         lastBatteryTime = currentTime;
-        battVolts = getBandgap();
+        updateBatteryVoltage(false);
 
         if (mainScreen)
         {
