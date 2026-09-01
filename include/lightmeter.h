@@ -154,16 +154,6 @@ long getISOByIndex(uint8_t indx)
     return pgm_read_dword(&isoValues[indx]);
 }
 
-float getMinDistance(float x, float v1, float v2)
-{
-    if (x - v1 > v2 - x)
-    {
-        return v2;
-    }
-
-    return v1;
-}
-
 const float timeValues[] PROGMEM = {
     0.0001f, 0.000125f, 0.00015625f, 0.0002f, 0.00025f, 0.000333333f, 0.0004f, 0.0005f,
     0.000666667f, 0.0008f, 0.001f, 0.00125f, 0.0015625f, 0.002f, 0.0025f, 0.003333333f,
@@ -206,27 +196,26 @@ uint8_t findNearestTimeIndex(float t)
     return MaxTimeIndex;
 }
 
-// Convert calculated time (in seconds) to the nearest shutter speed in the table.
-float fixTime(float t)
+uint8_t findNearestApertureIndex(float a)
 {
-    return getTimeByIndex(findNearestTimeIndex(t));
-}
+    float minAperture = getApertureByIndex(0);
+    if (a <= minAperture)
+    {
+        return 0;
+    }
 
-// Convert calculated aperture value to photograpy style aperture value.
-float fixAperture(float a)
-{
-    for (int i = 0; i < MaxApertureIndex; i++)
+    for (uint8_t i = 0; i < MaxApertureIndex; i++)
     {
         float a1 = getApertureByIndex(i);
         float a2 = getApertureByIndex(i + 1);
 
-        if (a1 < a && a2 >= a)
+        if (a <= a2)
         {
-            return getMinDistance(a, a1, a2);
+            return (a - a1 > a2 - a) ? i + 1 : i;
         }
     }
 
-    return 0;
+    return MaxApertureIndex;
 }
 
 /*
@@ -284,20 +273,8 @@ void refresh()
         else if (modeIndex == 1)
         {
             // Shutter speed priority. Calculating aperture.
-            A = fixAperture(sqrt(lux * ISOND * T / 250));
-
-            // Calculating aperture index for correct menu navigation.
-            if (A > 0)
-            {
-                for (int i = 0; i <= MaxApertureIndex; i++)
-                {
-                    if (A == getApertureByIndex(i))
-                    {
-                        apertureIndex = i;
-                        break;
-                    }
-                }
-            }
+            apertureIndex = findNearestApertureIndex(sqrt(lux * ISOND * T / 250));
+            A = getApertureByIndex(apertureIndex);
         }
     }
     else
