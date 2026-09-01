@@ -543,7 +543,7 @@ void refresh()
     // if ND4 (ND 0.6) filter is configured then we need to adjust ISO to -2 full stops. Ex. 800 to 200
     if (ndIndex > 0)
     {
-        ISOND = iso / (pow(2, ndIndex));
+        ISOND = iso / float(1UL << ndIndex);
     }
     else
     {
@@ -555,7 +555,7 @@ void refresh()
         if (modeIndex == 0)
         {
             // Aperture priority. Calculating time.
-            T = fixTime(100 * pow(A, 2) / ISOND / pow(2, EV)); // T = exposure time, in seconds
+            T = fixTime(250 * A * A / ISOND / lux); // T = exposure time, in seconds
 
             // Calculating shutter speed index for correct menu navigation.
             for (int i = 0; i <= MaxTimeIndex; i++)
@@ -570,7 +570,7 @@ void refresh()
         else if (modeIndex == 1)
         {
             // Shutter speed priority. Calculating aperture.
-            A = fixAperture(sqrt(pow(2, EV) * ISOND * T / 100));
+            A = fixAperture(sqrt(lux * ISOND * T / 250));
 
             // Calculating aperture index for correct menu navigation.
             if (A > 0)
@@ -739,7 +739,7 @@ void refresh()
         display.setCursor(0, 57);
         display.print(F("ND"));
         // display.setCursor(100, linePos[0] + 10);
-        display.print(pow(2, ndIndex), 0);
+        display.print(1UL << ndIndex);
         display.print(F("="));
         display.println(ndStop / 10.0, 1);
     }
@@ -867,7 +867,7 @@ void showNDMenu()
     if (ndIndex > 0)
     {
         display.print(F("ND"));
-        display.print(pow(2, ndIndex), 0);
+        display.print(1UL << ndIndex);
     }
     else
     {
