@@ -62,7 +62,7 @@ uint8_t getBatteryLevel(int centivolts)
 
 void updateBatteryLevel()
 {
-    while (batteryLevel < 4 && battVolts > getBatteryThreshold(batteryLevel) + BatteryHysteresisCentivolts)
+    while (batteryLevel < 4 && battVolts >= getBatteryThreshold(batteryLevel))
     {
         batteryLevel++;
     }
@@ -76,6 +76,10 @@ void updateBatteryLevel()
 int updateBatteryVoltage(boolean initialize)
 {
     int measuredBattVolts = getBandgap();
+#if LIGHTMETER_DEBUG
+    rawBattVolts = measuredBattVolts;
+#endif
+
     if (measuredBattVolts <= 0)
     {
         return measuredBattVolts;
@@ -122,6 +126,45 @@ void drawBatteryIndicator()
         display.fillRect(123, pgm_read_byte(&batteryFillTop[level]), 4, height, WHITE);
     }
 }
+
+#if LIGHTMETER_DEBUG
+void showDebugInfoMenu()
+{
+    ISOMenu = false;
+    mainScreen = false;
+    NDMenu = false;
+    modeMenu = false;
+    debugMenu = true;
+
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setCursor(0, 0);
+    display.print(F("Debug battery"));
+
+    display.setCursor(0, 14);
+    display.print(F("raw "));
+    display.print((double)rawBattVolts / 100);
+    display.print(F("V"));
+
+    display.setCursor(0, 26);
+    display.print(F("smooth "));
+    display.print((double)battVolts / 100);
+    display.print(F("V"));
+
+    display.setCursor(0, 38);
+    display.print(F("level "));
+    display.print(batteryLevel);
+    display.print(F("/4"));
+
+    display.setCursor(0, 50);
+    display.print(F("full "));
+    display.print((double)BatteryFullCentivolts / 100);
+    display.print(F("V"));
+
+    drawDebugBuildMarker();
+    display.display();
+}
+#endif
 
 void SaveSettings()
 {
@@ -400,6 +443,9 @@ void refresh()
     mainScreen = true;
     NDMenu = false;
     modeMenu = false;
+#if LIGHTMETER_DEBUG
+    debugMenu = false;
+#endif
 
     float EV = 0;
 
@@ -648,6 +694,9 @@ void showISOMenu()
     NDMenu = false;
     mainScreen = false;
     modeMenu = false;
+#if LIGHTMETER_DEBUG
+    debugMenu = false;
+#endif
 
     display.clearDisplay();
     display.setTextSize(2);
@@ -694,6 +743,9 @@ void showNDMenu()
     mainScreen = false;
     NDMenu = true;
     modeMenu = false;
+#if LIGHTMETER_DEBUG
+    debugMenu = false;
+#endif
 
     display.clearDisplay();
     display.setTextSize(2);
@@ -740,6 +792,9 @@ void showAutoModeMenu()
     mainScreen = false;
     NDMenu = false;
     modeMenu = true;
+#if LIGHTMETER_DEBUG
+    debugMenu = false;
+#endif
 
     display.clearDisplay();
     display.setTextSize(2);
@@ -789,6 +844,26 @@ void menu()
             autoMode = 0;
             showAutoModeMenu();
         }
+#if LIGHTMETER_DEBUG
+        else if (modeMenu)
+        {
+            autoMode = 0;
+            showDebugInfoMenu();
+        }
+        else if (debugMenu)
+        {
+            autoMode = autoModeIndex;
+            if (autoMode && meteringMode == 0)
+            {
+                filteredAutoLux = lux;
+                autoLuxFilterInitialized = true;
+                configureLightMeter(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
+                lastAutoModeTime = millis();
+            }
+            SaveSettings();
+            refresh();
+        }
+#endif
         else
         {
             autoMode = autoModeIndex;
@@ -803,6 +878,14 @@ void menu()
             refresh();
         }
     }
+
+#if LIGHTMETER_DEBUG
+    if (debugMenu && (PlusButtonState == 0 || MinusButtonState == 0))
+    {
+        debugPrintBattery(updateBatteryVoltage(false));
+        showDebugInfoMenu();
+    }
+#endif
 
     if (NDMenu)
     {
