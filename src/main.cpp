@@ -173,7 +173,7 @@ void loop()
         if (Overflow == 1)
         {
             delay(10);
-            getLux();
+            lux = getLux();
         }
 
         refresh();
@@ -196,7 +196,7 @@ void loop()
             if (Overflow == 1)
             {
                 delay(10);
-                getLux();
+                lux = getLux();
             }
 
             refresh();
