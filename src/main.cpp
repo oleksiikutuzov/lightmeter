@@ -30,7 +30,7 @@ BH1750 lightMeter;
 #define MaxApertureIndex 70
 #define MaxTimeIndex 79
 #define MaxNDIndex 13
-#define MaxFlashMeteringTime 5000 // ms
+#define MaxFlashMeteringTime 5000UL // ms
 #define MaxAutoModeIndex 1
 
 float lux;
@@ -75,11 +75,11 @@ uint8_t ndIndex = EEPROM.read(ndIndexAddr);
 uint8_t autoModeIndex = EEPROM.read(autoModeIndexAddr);
 
 int battVolts;
-#define batteryInterval 10000
-#define autoModeInterval 200 // ms
-double lastBatteryTime = 0;
-double lastAutoModeTime = 0;
-double autoMode;
+#define batteryInterval 10000UL
+#define autoModeInterval 200UL // ms
+unsigned long lastBatteryTime = 0;
+unsigned long lastAutoModeTime = 0;
+boolean autoMode;
 
 #include "lightmeter.h"
 
@@ -151,9 +151,11 @@ void setup()
 
 void loop()
 {
-    if (millis() >= lastBatteryTime + batteryInterval)
+    unsigned long currentTime = millis();
+
+    if (currentTime - lastBatteryTime >= batteryInterval)
     {
-        lastBatteryTime = millis();
+        lastBatteryTime = currentTime;
         battVolts = getBandgap();
     }
 
@@ -161,9 +163,9 @@ void loop()
 
     menu();
 
-    if (autoMode && millis() >= lastAutoModeTime + autoModeInterval)
+    if (autoMode && currentTime - lastAutoModeTime >= autoModeInterval)
     {
-        lastAutoModeTime = millis();
+        lastAutoModeTime = currentTime;
 
         // Ambient light meter mode.
         lightMeter.configure(BH1750::ONE_TIME_HIGH_RES_MODE_2);
@@ -214,7 +216,7 @@ void loop()
             while (true)
             {
                 // check max flash metering time
-                if (startTime + MaxFlashMeteringTime < millis())
+                if (millis() - startTime >= MaxFlashMeteringTime)
                 {
                     break;
                 }
