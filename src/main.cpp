@@ -1,6 +1,5 @@
 #include <Arduino.h>
 
-#include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH1106.h>
@@ -42,8 +41,6 @@ boolean autoLuxFilterInitialized = false;
 boolean Overflow = 0; // Sensor got Saturated and Display "Overflow"
 boolean SensorError = 0;
 float ISOND;
-boolean ISOmode = 0;
-boolean NDmode = 0;
 
 boolean PlusButtonState;         // "+" button state
 boolean MinusButtonState;        // "-" button state

@@ -45,12 +45,6 @@ int getBandgap(void)
     return results;
 }
 
-void footer()
-{
-    display.setCursor(0, 55);
-    display.print(F("press M"));
-}
-
 /*
   Get light value
 */
