@@ -142,6 +142,7 @@ void showDebugInfoMenu()
     mainScreen = false;
     NDMenu = false;
     modeMenu = false;
+    calibrationMenu = false;
     debugMenu = true;
 
     display.clearDisplay();
