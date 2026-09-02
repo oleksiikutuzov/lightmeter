@@ -1063,16 +1063,16 @@ void menu()
 /*
   Read buttons state
 */
-boolean readButtonPress(uint8_t pin, boolean &previousState)
+boolean readButtonPress(uint8_t pin, boolean &previousState, unsigned long &lastPressTime)
 {
     boolean currentState = digitalRead(pin);
     boolean pressed = HIGH;
     unsigned long currentTime = millis();
 
-    if (currentState == LOW && previousState == HIGH && currentTime - lastButtonTime >= 50)
+    if (currentState == LOW && previousState == HIGH && currentTime - lastPressTime >= 50)
     {
         pressed = LOW;
-        lastButtonTime = currentTime;
+        lastPressTime = currentTime;
     }
 
     previousState = currentState;
@@ -1081,10 +1081,10 @@ boolean readButtonPress(uint8_t pin, boolean &previousState)
 
 void readButtons()
 {
-    PlusButtonState = readButtonPress(PlusButtonPin, previousPlusButtonState);
-    MinusButtonState = readButtonPress(MinusButtonPin, previousMinusButtonState);
-    MeteringButtonState = readButtonPress(MeteringButtonPin, previousMeteringButtonState);
-    ModeButtonState = readButtonPress(ModeButtonPin, previousModeButtonState);
-    MenuButtonState = readButtonPress(MenuButtonPin, previousMenuButtonState);
-    MeteringModeButtonState = readButtonPress(MeteringModeButtonPin, previousMeteringModeButtonState);
+    PlusButtonState = readButtonPress(PlusButtonPin, previousPlusButtonState, lastPlusButtonTime);
+    MinusButtonState = readButtonPress(MinusButtonPin, previousMinusButtonState, lastMinusButtonTime);
+    MeteringButtonState = readButtonPress(MeteringButtonPin, previousMeteringButtonState, lastMeteringButtonTime);
+    ModeButtonState = readButtonPress(ModeButtonPin, previousModeButtonState, lastModeButtonTime);
+    MenuButtonState = readButtonPress(MenuButtonPin, previousMenuButtonState, lastMenuButtonTime);
+    MeteringModeButtonState = readButtonPress(MeteringModeButtonPin, previousMeteringModeButtonState, lastMeteringModeButtonTime);
 }

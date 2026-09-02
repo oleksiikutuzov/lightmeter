@@ -75,7 +75,12 @@ boolean previousMeteringButtonState = HIGH;
 boolean previousModeButtonState = HIGH;
 boolean previousMenuButtonState = HIGH;
 boolean previousMeteringModeButtonState = HIGH;
-unsigned long lastButtonTime = 0;
+unsigned long lastPlusButtonTime = 0;
+unsigned long lastMinusButtonTime = 0;
+unsigned long lastMeteringButtonTime = 0;
+unsigned long lastModeButtonTime = 0;
+unsigned long lastMenuButtonTime = 0;
+unsigned long lastMeteringModeButtonTime = 0;
 
 boolean ISOMenu = false;
 boolean NDMenu = false;
