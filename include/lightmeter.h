@@ -949,7 +949,6 @@ void menu()
     {
         if (mainScreen)
         {
-            autoMode = 0;
             listEditMode = false;
             showMenuList();
         }
@@ -1010,6 +1009,14 @@ void menu()
             else if (listMenuIndex == 2)
             {
                 autoModeIndex = 1 - autoModeIndex;
+                autoMode = autoModeIndex;
+                if (autoMode && meteringMode == 0)
+                {
+                    filteredAutoLux = lux;
+                    autoLuxFilterInitialized = true;
+                    configureLightMeter(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
+                    lastAutoModeTime = millis();
+                }
             }
             else if (listMenuIndex == 3)
             {
