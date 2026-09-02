@@ -106,6 +106,8 @@ void debugPrintBattery(int measuredBattVolts)
     DEBUG_PRINT((double)measuredBattVolts / 100);
     DEBUG_PRINT(F(" sm="));
     DEBUG_PRINT((double)battVolts / 100);
+    DEBUG_PRINT(F(" lvl="));
+    DEBUG_PRINT(batteryLevel);
     DEBUG_PRINTLN();
     DEBUG_FLUSH();
 #else
@@ -145,7 +147,7 @@ void showDebugInfoMenu()
     display.clearDisplay();
     display.setTextSize(1);
     display.setCursor(0, 0);
-    display.print(F("Debug Vcc"));
+    display.print(F("Debug Vcc proxy"));
 
     display.setCursor(0, 14);
     display.print(F("raw Vcc "));
@@ -158,10 +160,12 @@ void showDebugInfoMenu()
     display.print(F("V"));
 
     display.setCursor(0, 38);
-    display.print(F("battery sense N/A"));
+    display.print(F("proxy level "));
+    display.print(batteryLevel);
+    display.print(F("/4"));
 
     display.setCursor(0, 50);
-    display.print(F("Vcc, not cell voltage"));
+    display.print(F("Vcc proxy only"));
 
     drawDebugBuildMarker();
     display.display();
