@@ -927,8 +927,17 @@ void menu()
             }
             else
             {
+#if LIGHTMETER_DEBUG
+                if (listMenuIndex == 4)
+                {
+                    showDebugInfoMenu();
+                }
+                else
+#endif
+                {
                 listEditMode = true;
                 showMenuList();
+                }
             }
         }
 #if LIGHTMETER_DEBUG
