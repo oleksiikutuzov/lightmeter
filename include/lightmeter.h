@@ -120,7 +120,7 @@ void drawBatteryIndicator()
     if (battVolts > 0 && battVolts <= BatteryWarningCentivolts)
     {
         display.setTextSize(1);
-        display.setCursor(123, 0);
+        display.setCursor(120, 0);
         display.print(F("!"));
         return;
     }
