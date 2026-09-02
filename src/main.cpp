@@ -95,6 +95,7 @@ boolean mainScreen = false;
 boolean modeMenu = false;
 boolean calibrationMenu = false;
 boolean listMenu = false;
+boolean listEditMode = false;
 uint8_t listMenuIndex = 0;
 boolean flashMetering = false;
 unsigned long flashStartTime = 0;
