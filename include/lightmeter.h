@@ -1081,6 +1081,7 @@ void menu()
 
         if (PlusButtonState == 0 || MinusButtonState == 0)
         {
+            SaveSettings();
             showAutoModeMenu();
         }
     }
@@ -1153,6 +1154,7 @@ void menu()
             }
         }
 
+        SaveSettings();
         refresh();
     }
 
@@ -1174,6 +1176,7 @@ void menu()
             }
         }
 
+        SaveSettings();
         refresh();
     }
 
@@ -1232,6 +1235,7 @@ void menu()
             }
         }
 
+        SaveSettings();
         refresh();
     }
 }
