@@ -142,7 +142,9 @@ void showDebugInfoMenu()
     mainScreen = false;
     NDMenu = false;
     modeMenu = false;
+    listMenu = false;
     calibrationMenu = false;
+    listMenu = false;
     debugMenu = true;
 
     display.clearDisplay();
@@ -698,6 +700,7 @@ void showISOMenu()
     NDMenu = false;
     mainScreen = false;
     modeMenu = false;
+    listMenu = false;
 #if LIGHTMETER_DEBUG
     debugMenu = false;
 #endif
@@ -747,6 +750,7 @@ void showNDMenu()
     mainScreen = false;
     NDMenu = true;
     modeMenu = false;
+    listMenu = false;
 #if LIGHTMETER_DEBUG
     debugMenu = false;
 #endif
@@ -796,6 +800,7 @@ void showAutoModeMenu()
     mainScreen = false;
     NDMenu = false;
     modeMenu = true;
+    listMenu = false;
 #if LIGHTMETER_DEBUG
     debugMenu = false;
 #endif
@@ -835,6 +840,7 @@ void showCalibrationMenu()
     NDMenu = false;
     modeMenu = false;
     calibrationMenu = true;
+    listMenu = false;
 #if LIGHTMETER_DEBUG
     debugMenu = false;
 #endif
@@ -881,7 +887,21 @@ void showMenuList()
     {
         display.setCursor(8, 11 + i * 9);
         display.print(i == listMenuIndex ? F("> ") : F("  "));
-        display.println(items[i]);
+        display.print(items[i]);
+        display.setCursor(88, 11 + i * 9);
+        switch (i)
+        {
+        case 0: display.print(getISOByIndex(ISOIndex)); break;
+        case 1:
+            if (ndIndex == 0) display.print(F("Off"));
+            else { display.print(F("ND")); display.print(1UL << ndIndex); }
+            break;
+        case 2: display.print(autoModeIndex ? F("On") : F("Off")); break;
+        case 3: display.print(domeMultiplier, 1); break;
+#if LIGHTMETER_DEBUG
+        case 4: display.print(F("Vcc")); break;
+#endif
+        }
     }
     drawDebugBuildMarker();
     display.display();
