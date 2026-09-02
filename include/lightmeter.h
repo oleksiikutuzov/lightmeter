@@ -886,7 +886,7 @@ void showMenuList()
     for (uint8_t i = 0; i < itemCount; i++)
     {
         display.setCursor(8, 11 + i * 9);
-        display.print(i == listMenuIndex ? F("> ") : F("  "));
+        display.print(i == listMenuIndex ? (listEditMode ? F("* ") : F("> ")) : F("  "));
         display.print(items[i]);
         display.setCursor(88, 11 + i * 9);
         switch (i)
@@ -915,19 +915,20 @@ void menu()
         if (mainScreen)
         {
             autoMode = 0;
+            listEditMode = false;
             showMenuList();
         }
         else if (listMenu)
         {
-            switch (listMenuIndex)
+            if (listEditMode)
             {
-            case 0: showISOMenu(); break;
-            case 1: showNDMenu(); break;
-            case 2: showAutoModeMenu(); break;
-            case 3: showCalibrationMenu(); break;
-#if LIGHTMETER_DEBUG
-            case 4: showDebugInfoMenu(); break;
-#endif
+                listEditMode = false;
+                showMenuList();
+            }
+            else
+            {
+                listEditMode = true;
+                showMenuList();
             }
         }
 #if LIGHTMETER_DEBUG
@@ -938,6 +939,7 @@ void menu()
 #endif
         else
         {
+            listEditMode = false;
             showMenuList();
         }
     }
@@ -945,12 +947,34 @@ void menu()
     if (listMenu)
     {
         const uint8_t itemCount = 4 + (LIGHTMETER_DEBUG ? 1 : 0);
-        if (PlusButtonState == 0)
+        if (listEditMode && (PlusButtonState == 0 || MinusButtonState == 0))
+        {
+            if (listMenuIndex == 0)
+            {
+                ISOIndex = PlusButtonState == 0 ? (ISOIndex + 1) % (MaxISOIndex + 1) : (ISOIndex == 0 ? MaxISOIndex : ISOIndex - 1);
+            }
+            else if (listMenuIndex == 1)
+            {
+                ndIndex = PlusButtonState == 0 ? (ndIndex + 1) % (MaxNDIndex + 1) : (ndIndex == 0 ? MaxNDIndex : ndIndex - 1);
+            }
+            else if (listMenuIndex == 2)
+            {
+                autoModeIndex = 1 - autoModeIndex;
+            }
+            else if (listMenuIndex == 3)
+            {
+                if (PlusButtonState == 0 && domeMultiplier < 20.0f) domeMultiplier += 0.1f;
+                if (MinusButtonState == 0 && domeMultiplier > 0.5f) domeMultiplier -= 0.1f;
+            }
+            SaveSettings();
+            showMenuList();
+        }
+        else if (!listEditMode && PlusButtonState == 0)
         {
             listMenuIndex = (listMenuIndex + 1) % itemCount;
             showMenuList();
         }
-        else if (MinusButtonState == 0)
+        else if (!listEditMode && MinusButtonState == 0)
         {
             listMenuIndex = (listMenuIndex == 0) ? itemCount - 1 : listMenuIndex - 1;
             showMenuList();
