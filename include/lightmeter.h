@@ -845,16 +845,40 @@ void showCalibrationMenu()
     debugMenu = false;
 #endif
 
+    float previewLux = calibrationBaseLux * domeMultiplier;
+    float previewAperture = getApertureByIndex(apertureIndex);
+    float previewTime = getTimeByIndex(T_expIndex);
+    long iso = getISOByIndex(ISOIndex);
+    float isoWithND = ndIndex > 0 ? iso / float(1UL << ndIndex) : iso;
+    if (previewLux > 0)
+    {
+        if (modeIndex == 0)
+        {
+            previewTime = getTimeByIndex(findNearestTimeIndex(250 * previewAperture * previewAperture / isoWithND / previewLux));
+        }
+        else
+        {
+            previewAperture = getApertureByIndex(findNearestApertureIndex(sqrt(previewLux * isoWithND * previewTime / 250)));
+        }
+    }
+
     display.clearDisplay();
-    display.setTextSize(2);
-    display.setCursor(28, 4);
-    display.println(F("Calib."));
     display.setTextSize(1);
-    display.setCursor(12, 28);
-    display.print(F("Light multiplier"));
-    display.setTextSize(2);
-    display.setCursor(42, 42);
+    display.setCursor(0, 0);
+    display.print(F("CALIBRATION  ISO "));
+    display.print(iso);
+    display.setCursor(0, 14);
+    display.print(F("f/"));
+    display.print(previewAperture, 1);
+    display.setCursor(68, 14);
+    display.print(F("T "));
+    if (previewTime < 0.5f) { display.print(F("1/")); display.print(round(1 / previewTime), 0); }
+    else { display.print(previewTime, 1); display.print(F("s")); }
+    display.setCursor(0, 30);
+    display.print(F("multiplier "));
     display.print(domeMultiplier, 1);
+    display.setCursor(0, 46);
+    display.print(F("+/- adjust   Menu done"));
     drawDebugBuildMarker();
     display.display();
 }
@@ -934,6 +958,12 @@ void menu()
                 }
                 else
 #endif
+                if (listMenuIndex == 3)
+                {
+                    calibrationBaseLux = domeMultiplier > 0 ? lux / domeMultiplier : 0;
+                    showCalibrationMenu();
+                }
+                else
                 {
                 listEditMode = true;
                 showMenuList();
@@ -980,12 +1010,12 @@ void menu()
         }
         else if (!listEditMode && PlusButtonState == 0)
         {
-            listMenuIndex = (listMenuIndex + 1) % itemCount;
+            listMenuIndex = (listMenuIndex == 0) ? itemCount - 1 : listMenuIndex - 1;
             showMenuList();
         }
         else if (!listEditMode && MinusButtonState == 0)
         {
-            listMenuIndex = (listMenuIndex == 0) ? itemCount - 1 : listMenuIndex - 1;
+            listMenuIndex = (listMenuIndex + 1) % itemCount;
             showMenuList();
         }
     }
