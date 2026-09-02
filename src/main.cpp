@@ -37,7 +37,7 @@ Adafruit_SH1106 display(OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
 
 BH1750 lightMeter;
 
-#define DomeMultiplier 2.17     // Multiplier when using a white translucid Dome covering the lightmeter
+#define DomeMultiplierDefault 1.0f // No diffuser/dome fitted by default
 #define MeteringButtonPin 7     // Metering button pin
 #define PlusButtonPin 3         // Plus button pin
 #define MinusButtonPin 4        // Minus button pin
@@ -87,6 +87,7 @@ boolean ISOMenu = false;
 boolean NDMenu = false;
 boolean mainScreen = false;
 boolean modeMenu = false;
+boolean calibrationMenu = false;
 boolean flashMetering = false;
 unsigned long flashStartTime = 0;
 unsigned long lastFlashSampleTime = 0;
@@ -99,6 +100,7 @@ unsigned long lastFlashSampleTime = 0;
 #define meteringModeAddr 5
 #define ndIndexAddr 6
 #define autoModeIndexAddr 7
+#define domeMultiplierAddr 8
 
 #define defaultApertureIndex 12
 #define defaultISOIndex 11
@@ -112,6 +114,7 @@ uint8_t modeIndex = EEPROM.read(modeIndexAddr);
 uint8_t meteringMode = EEPROM.read(meteringModeAddr);
 uint8_t ndIndex = EEPROM.read(ndIndexAddr);
 uint8_t autoModeIndex = EEPROM.read(autoModeIndexAddr);
+float domeMultiplier;
 
 int battVolts;
 #define batteryInterval 10000UL
@@ -157,6 +160,13 @@ void setup()
     display.begin(SH1106_SWITCHCAPVCC, 0x3C);
     display.setTextColor(WHITE);
     display.clearDisplay();
+
+    EEPROM.get(domeMultiplierAddr, domeMultiplier);
+    if (!(domeMultiplier >= 0.5f && domeMultiplier <= 20.0f))
+    {
+        domeMultiplier = DomeMultiplierDefault;
+        EEPROM.put(domeMultiplierAddr, domeMultiplier);
+    }
 
     // IF NO MEMORY WAS RECORDED BEFORE, START WITH THIS VALUES otherwise it will read "255"
     if (apertureIndex > MaxApertureIndex)

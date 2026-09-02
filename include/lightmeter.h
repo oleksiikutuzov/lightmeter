@@ -182,6 +182,7 @@ void SaveSettings()
     EEPROM.update(T_expIndexAddr, T_expIndex);
     EEPROM.update(meteringModeAddr, meteringMode);
     EEPROM.update(autoModeIndexAddr, autoModeIndex);
+    EEPROM.put(domeMultiplierAddr, domeMultiplier);
 }
 
 boolean beginLightMeter(BH1750::Mode mode)
@@ -290,7 +291,7 @@ float getLux(float saturationLux = HighResolutionSaturationLux)
         SensorOverflow = 0;
     }
 
-    return lux * DomeMultiplier; // DomeMultiplier = 2.17 (calibration)*/
+    return lux * domeMultiplier;
 }
 
 boolean updateAutomaticLux(float measuredLux)
@@ -826,6 +827,31 @@ void showAutoModeMenu()
     display.display();
 }
 
+void showCalibrationMenu()
+{
+    ISOMenu = false;
+    mainScreen = false;
+    NDMenu = false;
+    modeMenu = false;
+    calibrationMenu = true;
+#if LIGHTMETER_DEBUG
+    debugMenu = false;
+#endif
+
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setCursor(4, 4);
+    display.println(F("Calibration"));
+    display.setTextSize(1);
+    display.setCursor(12, 28);
+    display.print(F("Light multiplier"));
+    display.setTextSize(2);
+    display.setCursor(42, 42);
+    display.print(domeMultiplier, 1);
+    drawDebugBuildMarker();
+    display.display();
+}
+
 // Navigation menu
 void menu()
 {
@@ -846,12 +872,21 @@ void menu()
             autoMode = 0;
             showAutoModeMenu();
         }
-#if LIGHTMETER_DEBUG
         else if (modeMenu)
         {
             autoMode = 0;
-            showDebugInfoMenu();
+            showCalibrationMenu();
         }
+        else if (calibrationMenu)
+        {
+            autoMode = 0;
+#if LIGHTMETER_DEBUG
+            showDebugInfoMenu();
+#else
+            refresh();
+#endif
+        }
+#if LIGHTMETER_DEBUG
         else if (debugMenu)
         {
             autoMode = autoModeIndex;
@@ -932,6 +967,24 @@ void menu()
         if (PlusButtonState == 0 || MinusButtonState == 0)
         {
             showAutoModeMenu();
+        }
+    }
+
+    if (calibrationMenu)
+    {
+        if (PlusButtonState == 0 && domeMultiplier < 20.0f)
+        {
+            domeMultiplier += 0.1f;
+        }
+        else if (MinusButtonState == 0 && domeMultiplier > 0.5f)
+        {
+            domeMultiplier -= 0.1f;
+        }
+
+        if (PlusButtonState == 0 || MinusButtonState == 0)
+        {
+            SaveSettings();
+            showCalibrationMenu();
         }
     }
 
