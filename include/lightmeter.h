@@ -872,13 +872,14 @@ void showCalibrationMenu()
     display.print(previewAperture, 1);
     display.setCursor(68, 14);
     display.print(F("T "));
-    if (previewTime < 0.5f) { display.print(F("1/")); display.print(round(1 / previewTime), 0); }
+    if (previewTime <= 0) { display.print(F("--")); }
+    else if (previewTime < 0.5f) { display.print(F("1/")); display.print(round(1 / previewTime), 0); }
     else { display.print(previewTime, 1); display.print(F("s")); }
     display.setCursor(0, 30);
     display.print(F("multiplier "));
     display.print(domeMultiplier, 1);
     display.setCursor(0, 46);
-    display.print(F("+/- adjust   Menu done"));
+    display.print(F("+/- adjust   M done"));
     drawDebugBuildMarker();
     display.display();
 }
