@@ -853,6 +853,40 @@ void showCalibrationMenu()
     display.display();
 }
 
+void showMenuList()
+{
+    ISOMenu = false;
+    mainScreen = false;
+    NDMenu = false;
+    modeMenu = false;
+    calibrationMenu = false;
+    listMenu = true;
+#if LIGHTMETER_DEBUG
+    debugMenu = false;
+#endif
+
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setCursor(0, 0);
+    display.print(F("MENU"));
+
+    const __FlashStringHelper *items[] = {
+        F("ISO"), F("ND"), F("Auto Mode"), F("Calib.")
+#if LIGHTMETER_DEBUG
+        , F("Debug")
+#endif
+    };
+    const uint8_t itemCount = sizeof(items) / sizeof(items[0]);
+    for (uint8_t i = 0; i < itemCount; i++)
+    {
+        display.setCursor(8, 11 + i * 9);
+        display.print(i == listMenuIndex ? F("> ") : F("  "));
+        display.println(items[i]);
+    }
+    drawDebugBuildMarker();
+    display.display();
+}
+
 // Navigation menu
 void menu()
 {
@@ -861,59 +895,45 @@ void menu()
         if (mainScreen)
         {
             autoMode = 0;
-            showISOMenu();
+            showMenuList();
         }
-        else if (ISOMenu)
+        else if (listMenu)
         {
-            autoMode = 0;
-            showNDMenu();
-        }
-        else if (NDMenu)
-        {
-            autoMode = 0;
-            showAutoModeMenu();
-        }
-        else if (modeMenu)
-        {
-            autoMode = 0;
-            showCalibrationMenu();
-        }
-        else if (calibrationMenu)
-        {
-            autoMode = 0;
+            switch (listMenuIndex)
+            {
+            case 0: showISOMenu(); break;
+            case 1: showNDMenu(); break;
+            case 2: showAutoModeMenu(); break;
+            case 3: showCalibrationMenu(); break;
 #if LIGHTMETER_DEBUG
-            showDebugInfoMenu();
-#else
-            refresh();
+            case 4: showDebugInfoMenu(); break;
 #endif
+            }
         }
 #if LIGHTMETER_DEBUG
         else if (debugMenu)
         {
-            autoMode = autoModeIndex;
-            if (autoMode && meteringMode == 0)
-            {
-                filteredAutoLux = lux;
-                autoLuxFilterInitialized = true;
-                configureLightMeter(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
-                lastAutoModeTime = millis();
-            }
-            SaveSettings();
-            refresh();
+            showMenuList();
         }
 #endif
         else
         {
-            autoMode = autoModeIndex;
-            if (autoMode && meteringMode == 0)
-            {
-                filteredAutoLux = lux;
-                autoLuxFilterInitialized = true;
-                configureLightMeter(BH1750::CONTINUOUS_HIGH_RES_MODE_2);
-                lastAutoModeTime = millis();
-            }
-            SaveSettings();
-            refresh();
+            showMenuList();
+        }
+    }
+
+    if (listMenu)
+    {
+        const uint8_t itemCount = 4 + (LIGHTMETER_DEBUG ? 1 : 0);
+        if (PlusButtonState == 0)
+        {
+            listMenuIndex = (listMenuIndex + 1) % itemCount;
+            showMenuList();
+        }
+        else if (MinusButtonState == 0)
+        {
+            listMenuIndex = (listMenuIndex == 0) ? itemCount - 1 : listMenuIndex - 1;
+            showMenuList();
         }
     }
 
@@ -1022,6 +1042,12 @@ void menu()
 
     if (ModeButtonState == 0)
     {
+        if (listMenu)
+        {
+            autoMode = autoModeIndex;
+            refresh();
+            return;
+        }
         // switching between Aperture priority and Shutter Speed priority.
         if (mainScreen)
         {
