@@ -124,6 +124,7 @@ uint8_t meteringMode = EEPROM.read(meteringModeAddr);
 uint8_t ndIndex = EEPROM.read(ndIndexAddr);
 uint8_t autoModeIndex = EEPROM.read(autoModeIndexAddr);
 float domeMultiplier;
+float calibrationBaseLux = 0;
 
 int battVolts;
 #define batteryInterval 10000UL
