@@ -102,12 +102,11 @@ int updateBatteryVoltage(boolean initialize)
 void debugPrintBattery(int measuredBattVolts)
 {
 #if LIGHTMETER_DEBUG
-    DEBUG_PRINT(F("bat raw="));
+    DEBUG_PRINT(F("vcc raw="));
     DEBUG_PRINT((double)measuredBattVolts / 100);
     DEBUG_PRINT(F(" sm="));
     DEBUG_PRINT((double)battVolts / 100);
-    DEBUG_PRINT(F(" lvl="));
-    DEBUG_PRINTLN(batteryLevel);
+    DEBUG_PRINTLN();
     DEBUG_FLUSH();
 #else
     (void)measuredBattVolts;
@@ -116,6 +115,12 @@ void debugPrintBattery(int measuredBattVolts)
 
 void drawBatteryIndicator()
 {
+#if !BatteryGaugeAvailable
+    display.setTextSize(1);
+    display.setCursor(122, 0);
+    display.print(F("?"));
+    return;
+#else
     display.drawRect(122, 1, 6, 8, WHITE);
     display.drawLine(124, 0, 125, 0, WHITE);
 
@@ -125,6 +130,7 @@ void drawBatteryIndicator()
     {
         display.fillRect(123, pgm_read_byte(&batteryFillTop[level]), 4, height, WHITE);
     }
+#endif
 }
 
 #if LIGHTMETER_DEBUG
@@ -139,27 +145,23 @@ void showDebugInfoMenu()
     display.clearDisplay();
     display.setTextSize(1);
     display.setCursor(0, 0);
-    display.print(F("Debug battery"));
+    display.print(F("Debug Vcc"));
 
     display.setCursor(0, 14);
-    display.print(F("raw "));
+    display.print(F("raw Vcc "));
     display.print((double)rawBattVolts / 100);
     display.print(F("V"));
 
     display.setCursor(0, 26);
-    display.print(F("smooth "));
+    display.print(F("smooth Vcc "));
     display.print((double)battVolts / 100);
     display.print(F("V"));
 
     display.setCursor(0, 38);
-    display.print(F("level "));
-    display.print(batteryLevel);
-    display.print(F("/4"));
+    display.print(F("battery sense N/A"));
 
     display.setCursor(0, 50);
-    display.print(F("full "));
-    display.print((double)BatteryFullCentivolts / 100);
-    display.print(F("V"));
+    display.print(F("Vcc, not cell voltage"));
 
     drawDebugBuildMarker();
     display.display();

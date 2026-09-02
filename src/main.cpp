@@ -117,6 +117,7 @@ int battVolts;
 #define BatterySmoothingDivisor 4
 #define BatteryHysteresisCentivolts 5
 #define BatteryFullCentivolts 390
+#define BatteryGaugeAvailable 0 // No direct BAT+ sense input is fitted on this revision.
 #define autoModeInterval 300UL // ms
 #define autoModeFilterWeight 0.25f
 #define autoModeLuxDeadband 0.02f
@@ -144,7 +145,9 @@ void setup()
     DEBUG_BEGIN(LIGHTMETER_DEBUG_BAUD);
     delay(250);
 
+#if BatteryGaugeAvailable || LIGHTMETER_DEBUG
     debugPrintBattery(updateBatteryVoltage(true));
+#endif
 
     Wire.begin();
     boolean lightMeterReady = beginLightMeter(BH1750::ONE_TIME_HIGH_RES_MODE_2);
@@ -214,7 +217,9 @@ void loop()
     if (currentTime - lastBatteryTime >= batteryInterval)
     {
         lastBatteryTime = currentTime;
+#if BatteryGaugeAvailable || LIGHTMETER_DEBUG
         debugPrintBattery(updateBatteryVoltage(false));
+#endif
 
         if (mainScreen)
         {
