@@ -841,8 +841,8 @@ void showCalibrationMenu()
 
     display.clearDisplay();
     display.setTextSize(2);
-    display.setCursor(4, 4);
-    display.println(F("Calibration"));
+    display.setCursor(28, 4);
+    display.println(F("Calib."));
     display.setTextSize(1);
     display.setCursor(12, 28);
     display.print(F("Light multiplier"));
@@ -1119,28 +1119,32 @@ void menu()
 /*
   Read buttons state
 */
-boolean readButtonPress(uint8_t pin, boolean &previousState, unsigned long &lastPressTime)
+boolean readButtonPress(uint8_t pin, boolean &stableState, boolean &rawState, unsigned long &changeTime)
 {
     boolean currentState = digitalRead(pin);
-    boolean pressed = HIGH;
     unsigned long currentTime = millis();
 
-    if (currentState == LOW && previousState == HIGH && currentTime - lastPressTime >= ButtonDebounceInterval)
+    if (currentState != rawState)
     {
-        pressed = LOW;
-        lastPressTime = currentTime;
+        rawState = currentState;
+        changeTime = currentTime;
     }
 
-    previousState = currentState;
-    return pressed;
+    if (rawState != stableState && currentTime - changeTime >= ButtonDebounceInterval)
+    {
+        stableState = rawState;
+        return stableState == LOW ? LOW : HIGH;
+    }
+
+    return HIGH;
 }
 
 void readButtons()
 {
-    PlusButtonState = readButtonPress(PlusButtonPin, previousPlusButtonState, lastPlusButtonTime);
-    MinusButtonState = readButtonPress(MinusButtonPin, previousMinusButtonState, lastMinusButtonTime);
-    MeteringButtonState = readButtonPress(MeteringButtonPin, previousMeteringButtonState, lastMeteringButtonTime);
-    ModeButtonState = readButtonPress(ModeButtonPin, previousModeButtonState, lastModeButtonTime);
-    MenuButtonState = readButtonPress(MenuButtonPin, previousMenuButtonState, lastMenuButtonTime);
-    MeteringModeButtonState = readButtonPress(MeteringModeButtonPin, previousMeteringModeButtonState, lastMeteringModeButtonTime);
+    PlusButtonState = readButtonPress(PlusButtonPin, previousPlusButtonState, rawPlusButtonState, plusButtonChangeTime);
+    MinusButtonState = readButtonPress(MinusButtonPin, previousMinusButtonState, rawMinusButtonState, minusButtonChangeTime);
+    MeteringButtonState = readButtonPress(MeteringButtonPin, previousMeteringButtonState, rawMeteringButtonState, meteringButtonChangeTime);
+    ModeButtonState = readButtonPress(ModeButtonPin, previousModeButtonState, rawModeButtonState, modeButtonChangeTime);
+    MenuButtonState = readButtonPress(MenuButtonPin, previousMenuButtonState, rawMenuButtonState, menuButtonChangeTime);
+    MeteringModeButtonState = readButtonPress(MeteringModeButtonPin, previousMeteringModeButtonState, rawMeteringModeButtonState, meteringModeButtonChangeTime);
 }
