@@ -114,7 +114,7 @@ unsigned long lastFlashSampleTime = 0;
 #define defaultApertureIndex 12
 #define defaultISOIndex 11
 #define defaultModeIndex 0
-#define defaultT_expIndex 12
+#define defaultT_expIndex 7 // 1/60 s fallback when EEPROM has no valid value
 
 uint8_t ISOIndex = EEPROM.read(ISOIndexAddr);
 uint8_t apertureIndex = EEPROM.read(apertureIndexAddr);
