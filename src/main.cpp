@@ -37,7 +37,7 @@ Adafruit_SH1106 display(OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
 
 BH1750 lightMeter;
 
-#define DomeMultiplierDefault 1.0f // No diffuser/dome fitted by default
+#define DomeMultiplierDefault 5.4f // Calibrated default multiplier
 #define MeteringButtonPin 7     // Metering button pin
 #define PlusButtonPin 3         // Plus button pin
 #define MinusButtonPin 4        // Minus button pin
@@ -100,7 +100,7 @@ unsigned long lastFlashSampleTime = 0;
 #define meteringModeAddr 5
 #define ndIndexAddr 6
 #define autoModeIndexAddr 7
-#define domeMultiplierAddr 8
+#define domeMultiplierAddr 9 // Versioned calibration slot; invalidates the earlier no-dome default.
 
 #define defaultApertureIndex 12
 #define defaultISOIndex 11
