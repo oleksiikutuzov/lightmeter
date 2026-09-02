@@ -1071,7 +1071,7 @@ boolean readButtonPress(uint8_t pin, boolean &previousState, unsigned long &last
     boolean pressed = HIGH;
     unsigned long currentTime = millis();
 
-    if (currentState == LOW && previousState == HIGH && currentTime - lastPressTime >= 50)
+    if (currentState == LOW && previousState == HIGH && currentTime - lastPressTime >= ButtonDebounceInterval)
     {
         pressed = LOW;
         lastPressTime = currentTime;

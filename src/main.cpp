@@ -51,6 +51,7 @@ BH1750 lightMeter;
 #define MaxTimeIndex 18
 #define MaxNDIndex 13
 #define MaxFlashMeteringTime 5000UL // ms
+#define ButtonDebounceInterval 50UL // ms, shared by all buttons
 #define MaxAutoModeIndex 1
 #define HighResolutionSaturationLux 27306.0f
 #define LowResolutionSaturationLux 54612.0f
