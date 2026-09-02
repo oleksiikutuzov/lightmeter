@@ -48,7 +48,7 @@ BH1750 lightMeter;
 
 #define MaxISOIndex 35
 #define MaxApertureIndex 42
-#define MaxTimeIndex 55
+#define MaxTimeIndex 18
 #define MaxNDIndex 13
 #define MaxFlashMeteringTime 5000UL // ms
 #define MaxAutoModeIndex 1
@@ -102,7 +102,7 @@ unsigned long lastFlashSampleTime = 0;
 #define defaultApertureIndex 12
 #define defaultISOIndex 11
 #define defaultModeIndex 0
-#define defaultT_expIndex 19
+#define defaultT_expIndex 12
 
 uint8_t ISOIndex = EEPROM.read(ISOIndexAddr);
 uint8_t apertureIndex = EEPROM.read(apertureIndexAddr);
