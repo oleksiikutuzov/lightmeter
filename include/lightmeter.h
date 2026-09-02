@@ -449,6 +449,9 @@ void refresh()
     mainScreen = true;
     NDMenu = false;
     modeMenu = false;
+    calibrationMenu = false;
+    listMenu = false;
+    listEditMode = false;
 #if LIGHTMETER_DEBUG
     debugMenu = false;
 #endif
