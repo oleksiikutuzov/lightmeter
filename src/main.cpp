@@ -131,6 +131,7 @@ int battVolts;
 #define BatterySmoothingDivisor 4
 #define BatteryHysteresisCentivolts 5
 #define BatteryFullCentivolts 390
+#define BatteryWarningCentivolts 320
 #define BatteryGaugeAvailable 1 // Proxy indicator based on Vcc; no direct BAT+ sense input is fitted.
 #define autoModeInterval 300UL // ms
 #define autoModeFilterWeight 0.25f

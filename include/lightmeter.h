@@ -117,6 +117,13 @@ void debugPrintBattery(int measuredBattVolts)
 
 void drawBatteryIndicator()
 {
+    if (battVolts > 0 && battVolts <= BatteryWarningCentivolts)
+    {
+        display.setTextSize(1);
+        display.setCursor(123, 0);
+        display.print(F("!"));
+        return;
+    }
 #if !BatteryGaugeAvailable
     display.setTextSize(1);
     display.setCursor(122, 0);
