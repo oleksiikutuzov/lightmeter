@@ -89,13 +89,30 @@ unsigned long modeButtonChangeTime = 0;
 unsigned long menuButtonChangeTime = 0;
 unsigned long meteringModeButtonChangeTime = 0;
 
-boolean ISOMenu = false;
-boolean NDMenu = false;
-boolean mainScreen = false;
-boolean modeMenu = false;
-boolean calibrationMenu = false;
-boolean listMenu = false;
-boolean listEditMode = false;
+enum ScreenState : uint8_t
+{
+    MainScreen,
+    MenuBrowseScreen,
+    MenuEditScreen,
+    CalibrationScreen,
+#if LIGHTMETER_DEBUG
+    DebugScreen,
+#endif
+};
+
+enum MenuItem : uint8_t
+{
+    ISOItem,
+    NDItem,
+    AutoModeItem,
+    CalibrationItem,
+#if LIGHTMETER_DEBUG
+    DebugItem,
+#endif
+    MenuItemCount
+};
+
+ScreenState screenState = MainScreen;
 uint8_t listMenuIndex = 0;
 boolean flashMetering = false;
 unsigned long flashStartTime = 0;
@@ -142,7 +159,6 @@ unsigned long lastAutoModeTime = 0;
 boolean autoMode;
 #if LIGHTMETER_DEBUG
 int rawBattVolts;
-boolean debugMenu = false;
 #endif
 
 #include "lightmeter.h"
@@ -243,12 +259,12 @@ void loop()
         debugPrintBattery(updateBatteryVoltage(false));
 #endif
 
-        if (mainScreen)
+        if (screenState == MainScreen)
         {
             refresh();
         }
 #if LIGHTMETER_DEBUG
-        else if (debugMenu)
+        else if (screenState == DebugScreen)
         {
             showDebugInfoMenu();
         }
@@ -265,7 +281,10 @@ void loop()
         if (currentTime - flashStartTime >= MaxFlashMeteringTime)
         {
             flashMetering = false;
-            refresh();
+            if (screenState == MainScreen)
+            {
+                refresh();
+            }
         }
         else if (currentTime - lastFlashSampleTime >= 16)
         {
@@ -343,7 +362,7 @@ void loop()
         {
             lux = 0;
             Overflow = 0;
-            if (!previousSensorError && mainScreen)
+            if (!previousSensorError && screenState == MainScreen)
             {
                 refresh();
             }
@@ -354,7 +373,7 @@ void loop()
             Overflow = measuredOverflow;
 
             boolean readingChanged = updateAutomaticLux(measuredLux);
-            if (mainScreen && (previousSensorError || readingChanged || overflowChanged))
+            if (screenState == MainScreen && (previousSensorError || readingChanged || overflowChanged))
             {
                 refresh();
             }

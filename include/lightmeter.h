@@ -145,14 +145,7 @@ void drawBatteryIndicator()
 #if LIGHTMETER_DEBUG
 void showDebugInfoMenu()
 {
-    ISOMenu = false;
-    mainScreen = false;
-    NDMenu = false;
-    modeMenu = false;
-    listMenu = false;
-    calibrationMenu = false;
-    listMenu = false;
-    debugMenu = true;
+    screenState = DebugScreen;
 
     display.clearDisplay();
     display.setTextSize(1);
@@ -452,16 +445,7 @@ uint8_t getND(uint8_t ndIndex)
 // Calculate new exposure value and display it.
 void refresh()
 {
-    ISOMenu = false;
-    mainScreen = true;
-    NDMenu = false;
-    modeMenu = false;
-    calibrationMenu = false;
-    listMenu = false;
-    listEditMode = false;
-#if LIGHTMETER_DEBUG
-    debugMenu = false;
-#endif
+    screenState = MainScreen;
 
     float EV = 0;
 
@@ -704,156 +688,9 @@ void refresh()
 
 }
 
-void showISOMenu()
-{
-    ISOMenu = true;
-    NDMenu = false;
-    mainScreen = false;
-    modeMenu = false;
-    listMenu = false;
-#if LIGHTMETER_DEBUG
-    debugMenu = false;
-#endif
-
-    display.clearDisplay();
-    display.setTextSize(2);
-    display.setCursor(50, 4);
-    display.println(F("ISO"));
-    display.setTextSize(3);
-
-    long iso = getISOByIndex(ISOIndex);
-
-    if (iso > 999999)
-    {
-        display.setCursor(0, 40);
-    }
-    else if (iso > 99999)
-    {
-        display.setCursor(10, 40);
-    }
-    else if (iso > 9999)
-    {
-        display.setCursor(20, 40);
-    }
-    else if (iso > 999)
-    {
-        display.setCursor(30, 40);
-    }
-    else if (iso > 99)
-    {
-        display.setCursor(40, 40);
-    }
-    else
-    {
-        display.setCursor(50, 40);
-    }
-
-    display.print(iso);
-
-    drawDebugBuildMarker();
-    display.display();
-}
-
-void showNDMenu()
-{
-    ISOMenu = false;
-    mainScreen = false;
-    NDMenu = true;
-    modeMenu = false;
-    listMenu = false;
-#if LIGHTMETER_DEBUG
-    debugMenu = false;
-#endif
-
-    display.clearDisplay();
-    display.setTextSize(2);
-    display.setCursor(10, 4);
-    display.println(F("ND Filter"));
-    display.setTextSize(3);
-
-    if (ndIndex > 9)
-    {
-        display.setCursor(10, 40);
-    }
-    else if (ndIndex > 6)
-    {
-        display.setCursor(20, 40);
-    }
-    else if (ndIndex > 3)
-    {
-        display.setCursor(30, 40);
-    }
-    else
-    {
-        display.setCursor(40, 40);
-    }
-
-    if (ndIndex > 0)
-    {
-        display.print(F("ND"));
-        display.print(1UL << ndIndex);
-    }
-    else
-    {
-        display.setTextSize(2);
-        display.setCursor(10, 40);
-        display.print(F("No filter"));
-    }
-
-    drawDebugBuildMarker();
-    display.display();
-}
-
-void showAutoModeMenu()
-{
-    ISOMenu = false;
-    mainScreen = false;
-    NDMenu = false;
-    modeMenu = true;
-    listMenu = false;
-#if LIGHTMETER_DEBUG
-    debugMenu = false;
-#endif
-
-    display.clearDisplay();
-    display.setTextSize(2);
-    display.setCursor(14, 4);
-    display.println(F("Auto Mode"));
-    display.setTextSize(3);
-
-    if (autoModeIndex)
-    {
-        display.setCursor(48, 40);
-    }
-    else
-    {
-        display.setCursor(40, 40);
-    }
-
-    if (autoModeIndex)
-    {
-        display.print(F("ON"));
-    }
-    else
-    {
-        display.print(F("OFF"));
-    }
-
-    drawDebugBuildMarker();
-    display.display();
-}
-
 void showCalibrationMenu()
 {
-    ISOMenu = false;
-    mainScreen = false;
-    NDMenu = false;
-    modeMenu = false;
-    calibrationMenu = true;
-    listMenu = false;
-#if LIGHTMETER_DEBUG
-    debugMenu = false;
-#endif
+    screenState = CalibrationScreen;
 
     float previewLux = calibrationBaseLux * domeMultiplier;
     float previewAperture = getApertureByIndex(apertureIndex);
@@ -894,17 +731,9 @@ void showCalibrationMenu()
     display.display();
 }
 
-void showMenuList()
+void showMenuList(boolean editing = false)
 {
-    ISOMenu = false;
-    mainScreen = false;
-    NDMenu = false;
-    modeMenu = false;
-    calibrationMenu = false;
-    listMenu = true;
-#if LIGHTMETER_DEBUG
-    debugMenu = false;
-#endif
+    screenState = editing ? MenuEditScreen : MenuBrowseScreen;
 
     display.clearDisplay();
     display.setTextSize(1);
@@ -917,24 +746,24 @@ void showMenuList()
         , F("Debug")
 #endif
     };
-    const uint8_t itemCount = sizeof(items) / sizeof(items[0]);
-    for (uint8_t i = 0; i < itemCount; i++)
+    static_assert(ARRAY_LENGTH(items) == MenuItemCount, "menu items must match MenuItem");
+    for (uint8_t i = 0; i < MenuItemCount; i++)
     {
         display.setCursor(8, 11 + i * 9);
-        display.print(i == listMenuIndex ? (listEditMode ? F("* ") : F("> ")) : F("  "));
+        display.print(i == listMenuIndex ? (editing ? F("* ") : F("> ")) : F("  "));
         display.print(items[i]);
         display.setCursor(88, 11 + i * 9);
         switch (i)
         {
-        case 0: display.print(getISOByIndex(ISOIndex)); break;
-        case 1:
+        case ISOItem: display.print(getISOByIndex(ISOIndex)); break;
+        case NDItem:
             if (ndIndex == 0) display.print(F("Off"));
             else { display.print(F("ND")); display.print(1UL << ndIndex); }
             break;
-        case 2: display.print(autoModeIndex ? F("On") : F("Off")); break;
-        case 3: display.print(domeMultiplier, 1); break;
+        case AutoModeItem: display.print(autoModeIndex ? F("On") : F("Off")); break;
+        case CalibrationItem: display.print(domeMultiplier, 1); break;
 #if LIGHTMETER_DEBUG
-        case 4: display.print(F("Vcc")); break;
+        case DebugItem: display.print(F("Vcc")); break;
 #endif
         }
     }
@@ -942,71 +771,66 @@ void showMenuList()
     display.display();
 }
 
+constexpr ScreenState getMenuButtonTarget(ScreenState currentScreen, uint8_t selectedItem)
+{
+    return currentScreen != MenuBrowseScreen ? MenuBrowseScreen :
+#if LIGHTMETER_DEBUG
+           selectedItem == DebugItem ? DebugScreen :
+#endif
+           selectedItem == CalibrationItem ? CalibrationScreen : MenuEditScreen;
+}
+
+static_assert(getMenuButtonTarget(MainScreen, ISOItem) == MenuBrowseScreen, "Menu must open the list");
+static_assert(getMenuButtonTarget(MenuBrowseScreen, ISOItem) == MenuEditScreen, "Menu must enter editing");
+static_assert(getMenuButtonTarget(MenuEditScreen, ISOItem) == MenuBrowseScreen, "Menu must finish editing");
+static_assert(getMenuButtonTarget(MenuBrowseScreen, CalibrationItem) == CalibrationScreen, "Menu must open calibration");
+static_assert(getMenuButtonTarget(CalibrationScreen, CalibrationItem) == MenuBrowseScreen, "Menu must finish calibration");
+#if LIGHTMETER_DEBUG
+static_assert(getMenuButtonTarget(MenuBrowseScreen, DebugItem) == DebugScreen, "Menu must open debug info");
+static_assert(getMenuButtonTarget(DebugScreen, DebugItem) == MenuBrowseScreen, "Menu must close debug info");
+#endif
+
 // Navigation menu
 void menu()
 {
     if (MenuButtonState == 0)
     {
-        if (mainScreen)
+        ScreenState targetScreen = getMenuButtonTarget(screenState, listMenuIndex);
+        switch (targetScreen)
         {
-            listEditMode = false;
+        case MenuBrowseScreen:
             showMenuList();
-        }
-        else if (listMenu)
-        {
-            if (listEditMode)
-            {
-                listEditMode = false;
-                showMenuList();
-            }
-            else
-            {
+            break;
+        case MenuEditScreen:
+            showMenuList(true);
+            break;
+        case CalibrationScreen:
+            calibrationBaseLux = domeMultiplier > 0 ? lux / domeMultiplier : 0;
+            showCalibrationMenu();
+            break;
 #if LIGHTMETER_DEBUG
-                if (listMenuIndex == 4)
-                {
-                    showDebugInfoMenu();
-                }
-                else
+        case DebugScreen:
+            showDebugInfoMenu();
+            break;
 #endif
-                if (listMenuIndex == 3)
-                {
-                    calibrationBaseLux = domeMultiplier > 0 ? lux / domeMultiplier : 0;
-                    showCalibrationMenu();
-                }
-                else
-                {
-                listEditMode = true;
-                showMenuList();
-                }
-            }
-        }
-#if LIGHTMETER_DEBUG
-        else if (debugMenu)
-        {
-            showMenuList();
-        }
-#endif
-        else
-        {
-            listEditMode = false;
-            showMenuList();
+        case MainScreen:
+            break;
         }
     }
 
-    if (listMenu)
+    if (screenState == MenuBrowseScreen || screenState == MenuEditScreen)
     {
-        const uint8_t itemCount = 4 + (LIGHTMETER_DEBUG ? 1 : 0);
-        if (listEditMode && (PlusButtonState == 0 || MinusButtonState == 0))
+        if (screenState == MenuEditScreen && (PlusButtonState == 0 || MinusButtonState == 0))
         {
-            if (listMenuIndex == 0)
+            if (listMenuIndex == ISOItem)
             {
                 ISOIndex = PlusButtonState == 0 ? (ISOIndex + 1) % (MaxISOIndex + 1) : (ISOIndex == 0 ? MaxISOIndex : ISOIndex - 1);
             }
-            else if (listMenuIndex == 1)
+            else if (listMenuIndex == NDItem)
             {
                 ndIndex = PlusButtonState == 0 ? (ndIndex + 1) % (MaxNDIndex + 1) : (ndIndex == 0 ? MaxNDIndex : ndIndex - 1);
             }
-            else if (listMenuIndex == 2)
+            else if (listMenuIndex == AutoModeItem)
             {
                 autoModeIndex = 1 - autoModeIndex;
                 autoMode = autoModeIndex;
@@ -1018,82 +842,30 @@ void menu()
                     lastAutoModeTime = millis();
                 }
             }
-            else if (listMenuIndex == 3)
-            {
-                if (PlusButtonState == 0 && domeMultiplier < 20.0f) domeMultiplier += 0.1f;
-                if (MinusButtonState == 0 && domeMultiplier > 0.5f) domeMultiplier -= 0.1f;
-            }
             SaveSettings();
+            showMenuList(true);
+        }
+        else if (screenState == MenuBrowseScreen && PlusButtonState == 0)
+        {
+            listMenuIndex = (listMenuIndex == 0) ? MenuItemCount - 1 : listMenuIndex - 1;
             showMenuList();
         }
-        else if (!listEditMode && PlusButtonState == 0)
+        else if (screenState == MenuBrowseScreen && MinusButtonState == 0)
         {
-            listMenuIndex = (listMenuIndex == 0) ? itemCount - 1 : listMenuIndex - 1;
-            showMenuList();
-        }
-        else if (!listEditMode && MinusButtonState == 0)
-        {
-            listMenuIndex = (listMenuIndex + 1) % itemCount;
+            listMenuIndex = (listMenuIndex + 1) % MenuItemCount;
             showMenuList();
         }
     }
 
 #if LIGHTMETER_DEBUG
-    if (debugMenu && (PlusButtonState == 0 || MinusButtonState == 0))
+    if (screenState == DebugScreen && (PlusButtonState == 0 || MinusButtonState == 0))
     {
         debugPrintBattery(updateBatteryVoltage(false));
         showDebugInfoMenu();
     }
 #endif
 
-    if (NDMenu)
-    {
-        if (PlusButtonState == 0)
-        {
-            ndIndex++;
-
-            if (ndIndex > MaxNDIndex)
-            {
-                ndIndex = 0;
-            }
-        }
-        else if (MinusButtonState == 0)
-        {
-            if (ndIndex <= 0)
-            {
-                ndIndex = MaxNDIndex;
-            }
-            else
-            {
-                ndIndex--;
-            }
-        }
-
-        if (PlusButtonState == 0 || MinusButtonState == 0)
-        {
-            showNDMenu();
-        }
-    }
-
-    if (modeMenu)
-    {
-        if (PlusButtonState == 0)
-        {
-            autoModeIndex = 1 - autoModeIndex;
-        }
-        else if (MinusButtonState == 0)
-        {
-            autoModeIndex = 1 - autoModeIndex;
-        }
-
-        if (PlusButtonState == 0 || MinusButtonState == 0)
-        {
-            SaveSettings();
-            showAutoModeMenu();
-        }
-    }
-
-    if (calibrationMenu)
+    if (screenState == CalibrationScreen)
     {
         if (PlusButtonState == 0 && domeMultiplier < 20.0f)
         {
@@ -1111,61 +883,26 @@ void menu()
         }
     }
 
-    if (ISOMenu)
-    {
-        // ISO change mode
-        if (PlusButtonState == 0)
-        {
-            // increase ISO
-            ISOIndex++;
-
-            if (ISOIndex > MaxISOIndex)
-            {
-                ISOIndex = 0;
-            }
-        }
-        else if (MinusButtonState == 0)
-        {
-            if (ISOIndex > 0)
-            {
-                ISOIndex--;
-            }
-            else
-            {
-                ISOIndex = MaxISOIndex;
-            }
-        }
-
-        if (PlusButtonState == 0 || MinusButtonState == 0)
-        {
-            showISOMenu();
-        }
-    }
-
     if (ModeButtonState == 0)
     {
-        if (listMenu)
+        if (screenState != MainScreen)
         {
-            autoMode = autoModeIndex;
             refresh();
             return;
         }
         // switching between Aperture priority and Shutter Speed priority.
-        if (mainScreen)
-        {
-            modeIndex++;
+        modeIndex++;
 
-            if (modeIndex > 1)
-            {
-                modeIndex = 0;
-            }
+        if (modeIndex > 1)
+        {
+            modeIndex = 0;
         }
 
         SaveSettings();
         refresh();
     }
 
-    if (mainScreen && MeteringModeButtonState == 0)
+    if (screenState == MainScreen && MeteringModeButtonState == 0)
     {
         // Switch between Ambient light and Flash light metering
         if (meteringMode == 0)
@@ -1187,7 +924,7 @@ void menu()
         refresh();
     }
 
-    if (mainScreen && (PlusButtonState == 0 || MinusButtonState == 0))
+    if (screenState == MainScreen && (PlusButtonState == 0 || MinusButtonState == 0))
     {
         if (modeIndex == 0)
         {
