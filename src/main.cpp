@@ -341,10 +341,10 @@ void loop()
 
         if (SensorError)
         {
-            if (!previousSensorError)
+            lux = 0;
+            Overflow = 0;
+            if (!previousSensorError && mainScreen)
             {
-                lux = 0;
-                Overflow = 0;
                 refresh();
             }
         }
@@ -353,7 +353,8 @@ void loop()
             boolean overflowChanged = (Overflow != measuredOverflow);
             Overflow = measuredOverflow;
 
-            if (previousSensorError || updateAutomaticLux(measuredLux) || overflowChanged)
+            boolean readingChanged = updateAutomaticLux(measuredLux);
+            if (mainScreen && (previousSensorError || readingChanged || overflowChanged))
             {
                 refresh();
             }
