@@ -37,7 +37,7 @@ Adafruit_SH1106 display(OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
 
 BH1750 lightMeter;
 
-#define DomeMultiplier 2.17     // Multiplier when using a white translucid Dome covering the lightmeter
+#define DomeMultiplierDefault 5.4f // Calibrated default multiplier
 #define MeteringButtonPin 7     // Metering button pin
 #define PlusButtonPin 3         // Plus button pin
 #define MinusButtonPin 4        // Minus button pin
@@ -48,9 +48,10 @@ BH1750 lightMeter;
 
 #define MaxISOIndex 35
 #define MaxApertureIndex 42
-#define MaxTimeIndex 55
+#define MaxTimeIndex 18
 #define MaxNDIndex 13
 #define MaxFlashMeteringTime 5000UL // ms
+#define ButtonDebounceInterval 50UL // ms, shared by all buttons
 #define MaxAutoModeIndex 1
 #define HighResolutionSaturationLux 27306.0f
 #define LowResolutionSaturationLux 54612.0f
@@ -75,12 +76,44 @@ boolean previousMeteringButtonState = HIGH;
 boolean previousModeButtonState = HIGH;
 boolean previousMenuButtonState = HIGH;
 boolean previousMeteringModeButtonState = HIGH;
-unsigned long lastButtonTime = 0;
+boolean rawPlusButtonState = HIGH;
+boolean rawMinusButtonState = HIGH;
+boolean rawMeteringButtonState = HIGH;
+boolean rawModeButtonState = HIGH;
+boolean rawMenuButtonState = HIGH;
+boolean rawMeteringModeButtonState = HIGH;
+unsigned long plusButtonChangeTime = 0;
+unsigned long minusButtonChangeTime = 0;
+unsigned long meteringButtonChangeTime = 0;
+unsigned long modeButtonChangeTime = 0;
+unsigned long menuButtonChangeTime = 0;
+unsigned long meteringModeButtonChangeTime = 0;
 
-boolean ISOMenu = false;
-boolean NDMenu = false;
-boolean mainScreen = false;
-boolean modeMenu = false;
+enum ScreenState : uint8_t
+{
+    MainScreen,
+    MenuBrowseScreen,
+    MenuEditScreen,
+    CalibrationScreen,
+#if LIGHTMETER_DEBUG
+    DebugScreen,
+#endif
+};
+
+enum MenuItem : uint8_t
+{
+    ISOItem,
+    NDItem,
+    AutoModeItem,
+    CalibrationItem,
+#if LIGHTMETER_DEBUG
+    DebugItem,
+#endif
+    MenuItemCount
+};
+
+ScreenState screenState = MainScreen;
+uint8_t listMenuIndex = 0;
 boolean flashMetering = false;
 unsigned long flashStartTime = 0;
 unsigned long lastFlashSampleTime = 0;
@@ -93,11 +126,12 @@ unsigned long lastFlashSampleTime = 0;
 #define meteringModeAddr 5
 #define ndIndexAddr 6
 #define autoModeIndexAddr 7
+#define domeMultiplierAddr 9 // Versioned calibration slot; invalidates the earlier no-dome default.
 
 #define defaultApertureIndex 12
 #define defaultISOIndex 11
 #define defaultModeIndex 0
-#define defaultT_expIndex 19
+#define defaultT_expIndex 7 // 1/60 s fallback when EEPROM has no valid value
 
 uint8_t ISOIndex = EEPROM.read(ISOIndexAddr);
 uint8_t apertureIndex = EEPROM.read(apertureIndexAddr);
@@ -106,12 +140,16 @@ uint8_t modeIndex = EEPROM.read(modeIndexAddr);
 uint8_t meteringMode = EEPROM.read(meteringModeAddr);
 uint8_t ndIndex = EEPROM.read(ndIndexAddr);
 uint8_t autoModeIndex = EEPROM.read(autoModeIndexAddr);
+float domeMultiplier;
+float calibrationBaseLux = 0;
 
 int battVolts;
 #define batteryInterval 10000UL
 #define BatterySmoothingDivisor 4
 #define BatteryHysteresisCentivolts 5
 #define BatteryFullCentivolts 390
+#define BatteryWarningCentivolts 320
+#define BatteryGaugeAvailable 1 // Proxy indicator based on Vcc; no direct BAT+ sense input is fitted.
 #define autoModeInterval 300UL // ms
 #define autoModeFilterWeight 0.25f
 #define autoModeLuxDeadband 0.02f
@@ -121,7 +159,6 @@ unsigned long lastAutoModeTime = 0;
 boolean autoMode;
 #if LIGHTMETER_DEBUG
 int rawBattVolts;
-boolean debugMenu = false;
 #endif
 
 #include "lightmeter.h"
@@ -139,7 +176,9 @@ void setup()
     DEBUG_BEGIN(LIGHTMETER_DEBUG_BAUD);
     delay(250);
 
+#if BatteryGaugeAvailable || LIGHTMETER_DEBUG
     debugPrintBattery(updateBatteryVoltage(true));
+#endif
 
     Wire.begin();
     boolean lightMeterReady = beginLightMeter(BH1750::ONE_TIME_HIGH_RES_MODE_2);
@@ -148,6 +187,13 @@ void setup()
     display.begin(SH1106_SWITCHCAPVCC, 0x3C);
     display.setTextColor(WHITE);
     display.clearDisplay();
+
+    EEPROM.get(domeMultiplierAddr, domeMultiplier);
+    if (!(domeMultiplier >= 0.5f && domeMultiplier <= 20.0f))
+    {
+        domeMultiplier = DomeMultiplierDefault;
+        EEPROM.put(domeMultiplierAddr, domeMultiplier);
+    }
 
     // IF NO MEMORY WAS RECORDED BEFORE, START WITH THIS VALUES otherwise it will read "255"
     if (apertureIndex > MaxApertureIndex)
@@ -209,14 +255,16 @@ void loop()
     if (currentTime - lastBatteryTime >= batteryInterval)
     {
         lastBatteryTime = currentTime;
+#if BatteryGaugeAvailable || LIGHTMETER_DEBUG
         debugPrintBattery(updateBatteryVoltage(false));
+#endif
 
-        if (mainScreen)
+        if (screenState == MainScreen)
         {
             refresh();
         }
 #if LIGHTMETER_DEBUG
-        else if (debugMenu)
+        else if (screenState == DebugScreen)
         {
             showDebugInfoMenu();
         }
@@ -233,7 +281,10 @@ void loop()
         if (currentTime - flashStartTime >= MaxFlashMeteringTime)
         {
             flashMetering = false;
-            refresh();
+            if (screenState == MainScreen)
+            {
+                refresh();
+            }
         }
         else if (currentTime - lastFlashSampleTime >= 16)
         {
@@ -309,10 +360,10 @@ void loop()
 
         if (SensorError)
         {
-            if (!previousSensorError)
+            lux = 0;
+            Overflow = 0;
+            if (!previousSensorError && screenState == MainScreen)
             {
-                lux = 0;
-                Overflow = 0;
                 refresh();
             }
         }
@@ -321,7 +372,8 @@ void loop()
             boolean overflowChanged = (Overflow != measuredOverflow);
             Overflow = measuredOverflow;
 
-            if (previousSensorError || updateAutomaticLux(measuredLux) || overflowChanged)
+            boolean readingChanged = updateAutomaticLux(measuredLux);
+            if (screenState == MainScreen && (previousSensorError || readingChanged || overflowChanged))
             {
                 refresh();
             }
